@@ -47,8 +47,8 @@ module.exports = {
     const isEnnardSeen = seenList.includes('Ennard');
 
     const secretosText = [
-      isGoldenSeen ? `✅ ✨ **Golden Freddy**` : `🔒 ✨ **Golden Freddy** — Bloqueado`,
-      isEnnardSeen ? `✅ 🕸️ **Ennard**` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 🕸️ **Ennard** — Bloqueado`)
+      isGoldenSeen ? `✅ ✨ **Golden Freddy**` : `🔒 ~~Golden Freddy~~ — Bloqueado`,
+      isEnnardSeen ? `✅ 🕸️ **Ennard**` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 ~~Ennard~~ — Bloqueado`)
     ].join('\n');
 
     // Progresso do Ennard
