@@ -161,7 +161,7 @@ const ANIMATRONICS = [
     minDamage: 14,
     maxDamage: 20,
     description: 'Líder assustadora que aprisiona oponentes com a sua garra hidráulica.',
-    gif: 'https://media.giphy.com/media/20k1punZ5bpmM/giphy.gif',
+    gif: 'https://media.tenor.com/skQNlsmWxHYAAAAC/fnaf-sl.gif',
     power: {
       name: 'Scooper Reach',
       chance: 0.09, // 9% (Ajustado para balanceamento)
@@ -174,7 +174,7 @@ const ANIMATRONICS = [
     minDamage: 12,
     maxDamage: 18,
     description: 'Bailarina graciosa com movimentos defensivos letais.',
-    gif: 'https://media.giphy.com/media/l0HlCqV35D6ac1yZq/giphy.gif',
+    gif: 'https://media.tenor.com/rV16Ba6G5x0AAAAC/ballora-fnaf.gif',
     power: {
       name: 'Spindash Ballet',
       chance: 0.08, // 8% (Ajustado para balanceamento)
@@ -187,7 +187,7 @@ const ANIMATRONICS = [
     minDamage: 13,
     maxDamage: 19,
     description: 'Estrela carismática com flashes hipnóticos e desorientadores.',
-    gif: 'https://media.giphy.com/media/3o7TKSx18bYh3a34ic/giphy.gif',
+    gif: 'https://media.tenor.com/nACRhMAPjSIAAAAC/funtime-chica-chica.gif',
     power: {
       name: 'Celebrity Flash',
       chance: 0.08, // 8%
@@ -200,7 +200,7 @@ const ANIMATRONICS = [
     minDamage: 15,
     maxDamage: 21,
     description: 'Imprevisível e hiperativo que lança o seu marionete Bon-Bon.',
-    gif: 'https://media.giphy.com/media/xT9IgFqJ7z05XnS0yQ/giphy.gif',
+    gif: 'https://media.tenor.com/k5f15TXqkfEAAAAC/funtime-fetty-fetty.gif',
     power: {
       name: 'Bon-Bon Rocket',
       chance: 0.11, // 11% (Ajustado para balanceamento)
@@ -213,7 +213,7 @@ const ANIMATRONICS = [
     minDamage: 17,
     maxDamage: 23,
     description: 'Performer extravagante de ataques hidráulicos e regeneração.',
-    gif: 'https://media.giphy.com/media/3o7TKzbV252W1d9bXy/giphy.gif',
+    gif: 'https://media.tenor.com/oWsYZkx9MNsAAAAC/funtime-foxy-foxy-fnaf.gif',
     power: {
       name: 'Hydraulic Overload',
       chance: 0.06, // 6%
