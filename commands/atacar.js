@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database');
 const config = require('../config');
-const { rollDamage, getAnimatronicByName, resolveDirectGifUrl, FUNTIME_NAMES } = require('../game/fnaf');
+const { rollDamage, getAnimatronicByName, resolveDirectGifUrl, FUNTIME_NAMES, MANGLE_COPIABLE_NAMES } = require('../game/fnaf');
 
 /**
  * Função utilitária reutilizável para aplicar o efeito de um poder especial a um atacante e alvo.
@@ -431,11 +431,7 @@ module.exports = {
         isPowerActivated = true;
 
         if (attacker.animatronic === 'Mangle') {
-          const possiblePowers = [
-            'Freddy', 'Foxy', 'Chica', 'Bonnie', 'Springtrap',
-            'Puppet', 'Toy Freddy', 'Toy Chica', 'Toy Bonnie', 'Balloon Boy',
-            'Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Freddy', 'Funtime Foxy'
-          ];
+          const possiblePowers = MANGLE_COPIABLE_NAMES;
           const copiedAnimName = possiblePowers[Math.floor(Math.random() * possiblePowers.length)];
           const result = applyPowerEffect(copiedAnimName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
 

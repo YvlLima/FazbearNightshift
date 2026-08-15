@@ -113,7 +113,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Wire Tangle',
       chance: 0.14, // 14%
-      description: 'Copia aleatoriamente o poder de outro animatronic do roster e aplica o seu efeito.'
+      description: 'Copia aleatoriamente o poder de um dos Toys.'
     }
   },
   {
@@ -236,6 +236,7 @@ const ANIMATRONICS = [
 ];
 
 const FUNTIME_NAMES = ['Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Freddy', 'Funtime Foxy'];
+const MANGLE_COPIABLE_NAMES = ['Toy Chica', 'Toy Bonnie', 'Toy Freddy', 'Balloon Boy'];
 
 /**
  * Retorna um animatronic aleatório do roster padrão (exclui Golden Freddy).
@@ -342,6 +343,7 @@ module.exports = {
   GOLDEN_FREDDY,
   ANIMATRONICS,
   FUNTIME_NAMES,
+  MANGLE_COPIABLE_NAMES,
   getRandomAnimatronic,
   getRandomDifferentAnimatronic,
   getAnimatronicByName,

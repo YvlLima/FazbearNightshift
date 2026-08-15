@@ -32,7 +32,7 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **Springtrap** | 🐇 | 12 – 17 | 16% | **Springlock Guilty**: Ganha resistência que divide por 2 o próximo poder recebido. |
 | **Puppet** | 🎭 | 20 – 25 | 10% | **Steel Agony**: Imobiliza o alvo por 2 turnos + 6 dano de agonia por turno (12 total). |
 | **Toy Freddy** | 🧸 | 14 – 20 | 10% | **AI Rage**: Dobra o dano (2x) e ignora a esquiva do alvo. |
-| **Mangle** | 🐺 | 16 – 22 | 14% | **Wire Tangle**: Copia e ativa aleatoriamente o poder de outro animatronic. |
+| **Mangle** | 🐺 | 16 – 22 | 14% | **Wire Tangle**: Copia aleatoriamente o poder de um dos Toys (Toy Chica, Toy Bonnie, Toy Freddy) ou do Balloon Boy. |
 | **Toy Chica** | 🐤 | 11 – 16 | 17% | **Heal Food**: Regenera +12 HP ao atacante (máx. 100 HP). |
 | **Toy Bonnie** | 🐰 | 13 – 19 | 9% | **Neon Gas**: Causa 4 dano direto + envenena o alvo por 3 rondas (8 dano/ronda). |
 | **Balloon Boy** | 🎈 | 8 – 14 | 8% | **Flash Balloon**: Cega o alvo por 3 ataques (11 dano próprio em cada tentativa). |
