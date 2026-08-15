@@ -87,6 +87,6 @@ module.exports = {
       if (directGifUrl) embed.setImage(directGifUrl);
     }
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 };
