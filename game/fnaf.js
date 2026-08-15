@@ -120,7 +120,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Wire Tangle',
       chance: 0.14, // 14%
-      description: 'Copia aleatoriamente o poder de um dos Toys.'
+      description: 'Copia aleatoriamente o poder de um dos Toys (Toy Freddy, Toy Chica, Toy Bonnie e Balloon Boy).'
     }
   },
   {
