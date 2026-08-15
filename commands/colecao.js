@@ -5,13 +5,27 @@ const { ANIMATRONICS, FUNTIME_NAMES } = require('../game/fnaf');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('colecao')
-    .setDescription('Consulta a tua coleção de animatronics encontrados e o progresso do Ennard.'),
+    .setDescription('Consulta a tua coleção de animatronics encontrados e o progresso do Ennard.')
+    .addUserOption(option =>
+      option
+        .setName('utilizador')
+        .setDescription('Consulta a coleção de outro jogador (opcional)')
+        .setRequired(false)
+    ),
 
   async execute(interaction) {
     if (db.init) await db.init();
 
-    const user = interaction.user;
-    const { seenList, funtimesList, ennardUnlocked } = db.getPlayerCollection(user.id);
+    const targetUser = interaction.options.getUser('utilizador') || interaction.user;
+
+    if (targetUser.bot) {
+      return interaction.reply({
+        content: '❌ Os bots não participam no jogo!',
+        ephemeral: true
+      });
+    }
+
+    const { seenList, funtimesList, ennardUnlocked } = db.getPlayerCollection(targetUser.id);
 
     // Definir as categorias de animatronics
     const classicosNames = ['Freddy', 'Foxy', 'Chica', 'Bonnie', 'Puppet', 'Springtrap'];
@@ -52,9 +66,9 @@ module.exports = {
     const totalSeenCount = seenList.length;
 
     const embed = new EmbedBuilder()
-      .setTitle(`🖼️ Coleção de Animatronics — ${user.username}`)
+      .setTitle(`🖼️ Coleção de Animatronics — ${targetUser.username}`)
       .setColor(0x9b59b6)
-      .setThumbnail(user.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
       .setDescription(`**Progresso Total**: **${totalSeenCount}/${totalRosterCount}** animatronics encontrados!\n\n${ennardSection}`)
       .addFields(
         {
