@@ -314,6 +314,9 @@ module.exports = {
       animInfo = getAnimatronicByName('Ennard');
       db.setEnnardPending(attackerUser.id, 0); // Consome o gatilho pendente
 
+      // Resetar o progresso dos 5 Funtimes na coleção do jogador após aparição do Ennard
+      db.resetEnnardProgress(attackerUser.id);
+
       // Sortear aleatoriamente 1 dos 5 Funtimes para herdar o poder com 100% de certeza
       forcedEnnardPowerName = FUNTIME_NAMES[Math.floor(Math.random() * FUNTIME_NAMES.length)];
     } else {
