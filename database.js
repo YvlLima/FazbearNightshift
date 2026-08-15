@@ -333,7 +333,6 @@ const dbAdapter = {
   },
 
   resetEnnardProgress(userId) {
-    const { FUNTIME_NAMES } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
     let seenList = [];
@@ -343,17 +342,16 @@ const dbAdapter = {
       seenList = [];
     }
 
-    // Remover especificamente os 5 Funtimes da coleção seen_animatronics
-    const filteredSeenList = seenList.filter(name => !FUNTIME_NAMES.includes(name));
-
-    // Garantir que o Ennard permanece marcado como visto (pois acabou de emergir!)
-    if (!filteredSeenList.includes('Ennard')) {
-      filteredSeenList.push('Ennard');
+    // Garantir que o Ennard permanece marcado como visto na coleção geral (pois acabou de emergir!)
+    if (!seenList.includes('Ennard')) {
+      seenList.push('Ennard');
     }
 
+    // Resetar APENAS o progresso de desbloqueio do Ennard (funtimes_seen)
+    // A coleção geral de animatronics (seen_animatronics) mantém os Funtimes já descobertos com ✅!
     rawDb.run(
       `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, seen_animatronics = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [JSON.stringify(filteredSeenList), userId]
+      [JSON.stringify(seenList), userId]
     );
     saveDatabase();
 
