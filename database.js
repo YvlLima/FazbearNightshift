@@ -34,7 +34,9 @@ const CREATE_TABLE_SQL = `
     reflect_turns INTEGER NOT NULL DEFAULT 0,
     immune_turns INTEGER NOT NULL DEFAULT 0,
     ennard_pending INTEGER NOT NULL DEFAULT 0,
+    ennard_unlocked INTEGER NOT NULL DEFAULT 0,
     funtimes_seen TEXT NOT NULL DEFAULT '[]',
+    seen_animatronics TEXT NOT NULL DEFAULT '[]',
     kills INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
@@ -65,7 +67,9 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasConfusedMult = false;
     let hasPoisonDamage = false;
     let hasEnnardPending = false;
+    let hasEnnardUnlocked = false;
     let hasFuntimesSeen = false;
+    let hasSeenAnimatronics = false;
 
     while (checkStmt.step()) {
       const obj = checkStmt.getAsObject();
@@ -77,11 +81,13 @@ let dbReadyPromise = initSqlJs().then(SQL => {
       if (obj.name === 'confused_multiplier') hasConfusedMult = true;
       if (obj.name === 'poison_damage') hasPoisonDamage = true;
       if (obj.name === 'ennard_pending') hasEnnardPending = true;
+      if (obj.name === 'ennard_unlocked') hasEnnardUnlocked = true;
       if (obj.name === 'funtimes_seen') hasFuntimesSeen = true;
+      if (obj.name === 'seen_animatronics') hasSeenAnimatronics = true;
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasFuntimesSeen) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
@@ -92,7 +98,9 @@ let dbReadyPromise = initSqlJs().then(SQL => {
         if (!hasConfusedMult) rawDb.run("ALTER TABLE players ADD COLUMN confused_multiplier REAL NOT NULL DEFAULT 1.0;");
         if (!hasPoisonDamage) rawDb.run("ALTER TABLE players ADD COLUMN poison_damage INTEGER NOT NULL DEFAULT 8;");
         if (!hasEnnardPending) rawDb.run("ALTER TABLE players ADD COLUMN ennard_pending INTEGER NOT NULL DEFAULT 0;");
+        if (!hasEnnardUnlocked) rawDb.run("ALTER TABLE players ADD COLUMN ennard_unlocked INTEGER NOT NULL DEFAULT 0;");
         if (!hasFuntimesSeen) rawDb.run("ALTER TABLE players ADD COLUMN funtimes_seen TEXT NOT NULL DEFAULT '[]';");
+        if (!hasSeenAnimatronics) rawDb.run("ALTER TABLE players ADD COLUMN seen_animatronics TEXT NOT NULL DEFAULT '[]';");
       } catch (e) {
         console.error('Erro na migração:', e.message);
       }
@@ -123,8 +131,8 @@ const dbAdapter = {
 
     if (!player) {
       rawDb.run(
-        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, funtimes_seen, kills)
-         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, '[]', 0)`,
+        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, ennard_unlocked, funtimes_seen, seen_animatronics, kills)
+         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, '[]', '[]', 0)`,
         [
           userId,
           FIXED_PLAYER_MAX_HP,
@@ -237,34 +245,84 @@ const dbAdapter = {
     return this.getOrCreatePlayer(userId);
   },
 
-  recordFuntimeSeen(userId, animName) {
+  recordAnimatronicSeen(userId, animName) {
     const { FUNTIME_NAMES } = require('./game/fnaf');
-    if (!FUNTIME_NAMES.includes(animName)) return { seenList: [], isUnlocked: false };
-
     const player = this.getOrCreatePlayer(userId);
+
     let seenList = [];
     try {
-      seenList = JSON.parse(player.funtimes_seen || '[]');
+      seenList = JSON.parse(player.seen_animatronics || '[]');
     } catch(e) {
       seenList = [];
     }
 
+    let funtimesList = [];
+    try {
+      funtimesList = JSON.parse(player.funtimes_seen || '[]');
+    } catch(e) {
+      funtimesList = [];
+    }
+
+    let updated = false;
     if (!seenList.includes(animName)) {
       seenList.push(animName);
+      updated = true;
+    }
+
+    if (FUNTIME_NAMES.includes(animName) && !funtimesList.includes(animName)) {
+      funtimesList.push(animName);
+      updated = true;
+    }
+
+    const isUnlocked = FUNTIME_NAMES.every(name => funtimesList.includes(name));
+    const newlyUnlocked = isUnlocked && player.ennard_unlocked === 0;
+
+    if (updated || newlyUnlocked) {
       rawDb.run(
-        `UPDATE players SET funtimes_seen = ?, updated_at = datetime('now') WHERE user_id = ?`,
-        [JSON.stringify(seenList), userId]
+        `UPDATE players SET seen_animatronics = ?, funtimes_seen = ?, ennard_unlocked = ?, updated_at = datetime('now') WHERE user_id = ?`,
+        [JSON.stringify(seenList), JSON.stringify(funtimesList), isUnlocked ? 1 : 0, userId]
       );
       saveDatabase();
     }
 
-    const isUnlocked = FUNTIME_NAMES.every(name => seenList.includes(name));
-    return { seenList, isUnlocked };
+    return { seenList, funtimesList, ennardUnlocked: isUnlocked };
+  },
+
+  getPlayerCollection(userId) {
+    const { FUNTIME_NAMES } = require('./game/fnaf');
+    const player = this.getOrCreatePlayer(userId);
+
+    let seenList = [];
+    try {
+      seenList = JSON.parse(player.seen_animatronics || '[]');
+    } catch(e) {
+      seenList = [];
+    }
+
+    let funtimesList = [];
+    try {
+      funtimesList = JSON.parse(player.funtimes_seen || '[]');
+    } catch(e) {
+      funtimesList = [];
+    }
+
+    const isUnlocked = Boolean(player.ennard_unlocked === 1 || FUNTIME_NAMES.every(name => funtimesList.includes(name)));
+
+    return {
+      seenList,
+      funtimesList,
+      ennardUnlocked: isUnlocked
+    };
+  },
+
+  recordFuntimeSeen(userId, animName) {
+    return this.recordAnimatronicSeen(userId, animName);
   },
 
   hasUnlockedEnnard(userId) {
     const { FUNTIME_NAMES } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
+    if (player.ennard_unlocked === 1) return true;
     let seenList = [];
     try {
       seenList = JSON.parse(player.funtimes_seen || '[]');

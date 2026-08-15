@@ -328,10 +328,12 @@ module.exports = {
         animInfo = getAnimatronicByName(attacker.animatronic);
       }
 
-      // Se saiu um dos 5 Funtimes, registar na coleção do jogador e ativar gatilho do Ennard se elegível
+      // Registar qualquer animatronic sorteado no histórico de coleção do jogador
+      db.recordAnimatronicSeen(attackerUser.id, attacker.animatronic);
+
+      // Se saiu um dos 5 Funtimes, verificar se a coleção está completa e ativar gatilho do Ennard
       if (FUNTIME_NAMES.includes(attacker.animatronic)) {
-        const { isUnlocked } = db.recordFuntimeSeen(attackerUser.id, attacker.animatronic);
-        if (isUnlocked) {
+        if (db.hasUnlockedEnnard(attackerUser.id)) {
           db.setEnnardPending(attackerUser.id, 1);
         }
       }

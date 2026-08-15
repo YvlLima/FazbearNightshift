@@ -52,6 +52,7 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | :--- | :--- | :--- |
 | `/atacar` | `@alvo` *(obrigatório)* | Desfere um ataque PvP utilizando o teu animatronic atual contra outro jogador. |
 | `/status` | `[utilizador]` *(opcional)* | Consulta o HP, KOs, último animatronic, margem de dano e efeitos ativos do jogador. |
+| `/colecao` | *Nenhum* | Consulta o teu histórico de animatronics encontrados (ephemeral) e o progresso do Ennard. |
 | `/leaderboard` | *Nenhum* | Exibe o ranking Top 10 dos jogadores com mais eliminações (KOs). |
 
 ---
