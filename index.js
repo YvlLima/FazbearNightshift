@@ -43,6 +43,18 @@ process.on('unhandledRejection', (reason) => {
 
 // Handler central de interações de comandos slash
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isAutocomplete()) {
+    const command = client.commands.get(interaction.commandName);
+    if (command && command.autocomplete) {
+      try {
+        await command.autocomplete(interaction);
+      } catch (err) {
+        console.error(`❌ Erro no autocomplete do comando /${interaction.commandName}:`, err.message);
+      }
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);

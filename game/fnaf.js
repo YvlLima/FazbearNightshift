@@ -6,8 +6,15 @@
 const GOLDEN_FREDDY = {
   name: 'Golden Freddy',
   emoji: '✨',
+  minDamage: 100,
+  maxDamage: 100,
   description: 'Lendário e extremamente raro. Garante vitória instantânea sempre que aparece.',
-  gif: 'https://media.giphy.com/media/VsvjvEa5FF3lTcjdov/giphy.gif'
+  gif: 'https://media.giphy.com/media/VsvjvEa5FF3lTcjdov/giphy.gif',
+  power: {
+    name: 'Golden Jumpscare',
+    chance: 0.01, // 1%
+    description: 'Aparece com 1% de probabilidade e aplica Instakill imediato (100 de dano), reduzindo instantaneamente o HP do oponente a 0!'
+  }
 };
 
 // Roster fixo de 11 animatronics padrão (sorteio normal nos 99% dos casos)
@@ -339,6 +346,14 @@ async function resolveDirectGifUrl(url) {
   return null;
 }
 
+/**
+ * Retorna a lista completa de todos os animatronics (incluindo Golden Freddy).
+ * @returns {Array<object>}
+ */
+function getAllAnimatronics() {
+  return [...ANIMATRONICS, { ...GOLDEN_FREDDY }];
+}
+
 module.exports = {
   GOLDEN_FREDDY,
   ANIMATRONICS,
@@ -347,6 +362,7 @@ module.exports = {
   getRandomAnimatronic,
   getRandomDifferentAnimatronic,
   getAnimatronicByName,
+  getAllAnimatronics,
   rollDamage,
   resolveDirectGifUrl
 };

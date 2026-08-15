@@ -38,8 +38,20 @@ const CREATE_TABLE_SQL = `
     funtimes_seen TEXT NOT NULL DEFAULT '[]',
     seen_animatronics TEXT NOT NULL DEFAULT '[]',
     kills INTEGER NOT NULL DEFAULT 0,
+    total_attacks INTEGER NOT NULL DEFAULT 0,
+    total_wins INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS duel_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    attacker_id TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    animatronic TEXT NOT NULL,
+    damage INTEGER NOT NULL,
+    was_ko INTEGER NOT NULL DEFAULT 0,
+    timestamp INTEGER NOT NULL
   );
 `;
 
@@ -70,6 +82,8 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasEnnardUnlocked = false;
     let hasFuntimesSeen = false;
     let hasSeenAnimatronics = false;
+    let hasTotalAttacks = false;
+    let hasTotalWins = false;
 
     while (checkStmt.step()) {
       const obj = checkStmt.getAsObject();
@@ -84,10 +98,12 @@ let dbReadyPromise = initSqlJs().then(SQL => {
       if (obj.name === 'ennard_unlocked') hasEnnardUnlocked = true;
       if (obj.name === 'funtimes_seen') hasFuntimesSeen = true;
       if (obj.name === 'seen_animatronics') hasSeenAnimatronics = true;
+      if (obj.name === 'total_attacks') hasTotalAttacks = true;
+      if (obj.name === 'total_wins') hasTotalWins = true;
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
@@ -101,6 +117,8 @@ let dbReadyPromise = initSqlJs().then(SQL => {
         if (!hasEnnardUnlocked) rawDb.run("ALTER TABLE players ADD COLUMN ennard_unlocked INTEGER NOT NULL DEFAULT 0;");
         if (!hasFuntimesSeen) rawDb.run("ALTER TABLE players ADD COLUMN funtimes_seen TEXT NOT NULL DEFAULT '[]';");
         if (!hasSeenAnimatronics) rawDb.run("ALTER TABLE players ADD COLUMN seen_animatronics TEXT NOT NULL DEFAULT '[]';");
+        if (!hasTotalAttacks) rawDb.run("ALTER TABLE players ADD COLUMN total_attacks INTEGER NOT NULL DEFAULT 0;");
+        if (!hasTotalWins) rawDb.run("ALTER TABLE players ADD COLUMN total_wins INTEGER NOT NULL DEFAULT 0;");
       } catch (e) {
         console.error('Erro na migração:', e.message);
       }
@@ -131,8 +149,8 @@ const dbAdapter = {
 
     if (!player) {
       rawDb.run(
-        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, ennard_unlocked, funtimes_seen, seen_animatronics, kills)
-         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, '[]', '[]', 0)`,
+        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, ennard_unlocked, funtimes_seen, seen_animatronics, kills, total_attacks, total_wins)
+         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, '[]', '[]', 0, 0, 0)`,
         [
           userId,
           FIXED_PLAYER_MAX_HP,
@@ -388,6 +406,83 @@ const dbAdapter = {
     );
     saveDatabase();
     return this.getOrCreatePlayer(userId);
+  },
+
+  incrementAttacks(userId) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET total_attacks = total_attacks + 1, updated_at = datetime('now') WHERE user_id = ?`,
+      [userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  incrementWins(userId) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET total_wins = total_wins + 1, updated_at = datetime('now') WHERE user_id = ?`,
+      [userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  recordDuel({ attackerId, targetId, animatronic, damage, wasKo, timestamp }) {
+    rawDb.run(
+      `INSERT INTO duel_history (attacker_id, target_id, animatronic, damage, was_ko, timestamp)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [attackerId, targetId, animatronic, damage, wasKo ? 1 : 0, timestamp || Date.now()]
+    );
+    saveDatabase();
+  },
+
+  getDuelHistory(userId, limit = 10) {
+    const stmt = rawDb.prepare(
+      `SELECT * FROM duel_history
+       WHERE attacker_id = :userId OR target_id = :userId
+       ORDER BY timestamp DESC LIMIT :limit`
+    );
+    stmt.bind({ ':userId': userId, ':limit': limit });
+
+    const list = [];
+    while (stmt.step()) {
+      list.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return list;
+  },
+
+  getFavoriteAnimatronic(userId) {
+    const stmt = rawDb.prepare(
+      `SELECT animatronic, COUNT(*) as count FROM duel_history
+       WHERE attacker_id = :userId
+       GROUP BY animatronic
+       ORDER BY count DESC LIMIT 1`
+    );
+    stmt.bind({ ':userId': userId });
+
+    let fav = null;
+    if (stmt.step()) {
+      fav = stmt.getAsObject().animatronic;
+    }
+    stmt.free();
+
+    if (!fav) {
+      const player = this.getOrCreatePlayer(userId);
+      fav = player.animatronic || 'Nenhum';
+    }
+    return fav;
+  },
+
+  getAllPlayersWithKills() {
+    const stmt = rawDb.prepare('SELECT user_id, kills FROM players WHERE kills > 0 ORDER BY kills DESC');
+    const list = [];
+    while (stmt.step()) {
+      list.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return list;
   }
 };
 

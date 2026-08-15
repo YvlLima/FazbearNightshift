@@ -279,6 +279,16 @@ module.exports = {
       db.updatePlayerHp(attackerUser.id, newAttackerHp);
 
       const isSelfKo = newAttackerHp === 0;
+      db.incrementAttacks(attackerUser.id);
+      db.recordDuel({
+        attackerId: attackerUser.id,
+        targetId: targetUser.id,
+        animatronic: attacker.animatronic,
+        damage: damageDealt,
+        wasKo: isSelfKo ? 1 : 0,
+        timestamp: now
+      });
+
       let koMessage = '';
       if (isSelfKo) {
         koMessage = `\n\n💀 **${attackerUser.username}** foi desligado pelo seu próprio ataque confuso!\n⚙️ A vida de **${attackerUser.username}** foi reiniciada para 100 HP.`;
@@ -342,6 +352,7 @@ module.exports = {
       }
     }
     db.setLastAttack(attackerUser.id, now);
+    db.incrementAttacks(attackerUser.id);
 
     // 9. Obter dados atualizados do alvo
     let target = db.getOrCreatePlayer(targetUser.id);
@@ -350,7 +361,16 @@ module.exports = {
     if (isGoldenFreddyDrawn) {
       db.updatePlayerHp(targetUser.id, 0);
       db.updatePlayerEffects(attackerUser.id, { invincible_turns: 2 });
+      db.incrementWins(attackerUser.id);
       db.incrementPlayerKills(attackerUser.id);
+      db.recordDuel({
+        attackerId: attackerUser.id,
+        targetId: targetUser.id,
+        animatronic: 'Golden Freddy',
+        damage: 100,
+        wasKo: 1,
+        timestamp: now
+      });
 
       const koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **Golden Freddy**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
       db.resetPlayerHp(targetUser.id);
@@ -508,10 +528,20 @@ module.exports = {
     const isTargetKo = newTargetHp === 0;
     let koMessage = '';
     if (isTargetKo) {
+      db.incrementWins(attackerUser.id);
       db.incrementPlayerKills(attackerUser.id);
       koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **${attacker.animatronic}**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
       db.resetPlayerHp(targetUser.id);
     }
+
+    db.recordDuel({
+      attackerId: attackerUser.id,
+      targetId: targetUser.id,
+      animatronic: attacker.animatronic,
+      damage: totalDamageDealt,
+      wasKo: isTargetKo ? 1 : 0,
+      timestamp: now
+    });
 
     // 16. CONSTRUÇÃO DO EMBED FINAL DE DUELO
     const embedColor = isTargetKo ? 0x992d22 : (isEnnardForced ? 0x4a4b4d : (isPowerActivated ? 0xf1c40f : 0xe74c3c));
