@@ -17,7 +17,7 @@ const GOLDEN_FREDDY = {
   }
 };
 
-// Roster fixo de animatronics padrão (sorteio normal nos 99% dos casos)
+// Roster fixo de 11 animatronics padrão (sorteio normal nos 99% dos casos)
 const ANIMATRONICS = [
   {
     name: 'Freddy',
@@ -259,7 +259,7 @@ const ANIMATRONICS = [
     minDamage: 15,
     maxDamage: 21,
     description: 'Pilota narcisista com visão de raios-X e deteção de falhas.',
-    gif: 'https://media.giphy.com/media/26n6WywJyh39n1pBu/giphy.gif',
+    gif: 'https://media.giphy.com/media/r6vcGAWmg2S7Dpc4YJ/giphy.gif',
     power: {
       name: "Roxy's Eyes",
       chance: 0.08, // 8%
@@ -354,6 +354,7 @@ const MANGLE_COPIABLE_NAMES = ['Toy Chica', 'Toy Bonnie', 'Toy Freddy', 'Balloon
  * @returns {object} Objeto do animatronic selecionado
  */
 function getRandomAnimatronic() {
+  // O sorteio normal exclui Ennard (já que Ennard só aparece via gatilho ennard_pending)
   const regularAnimatronics = ANIMATRONICS.filter(a => a.name !== 'Ennard');
   const randomIndex = Math.floor(Math.random() * regularAnimatronics.length);
   return { ...regularAnimatronics[randomIndex] };
@@ -367,6 +368,7 @@ function getRandomAnimatronic() {
 function getRandomDifferentAnimatronic(currentName) {
   if (!currentName) return getRandomAnimatronic();
 
+  // Exclui Ennard e o animatronic atual do sorteio normal
   const filtered = ANIMATRONICS.filter(
     a => a.name !== 'Ennard' && a.name.toLowerCase() !== currentName.toLowerCase()
   );
@@ -409,6 +411,7 @@ function rollDamage(animatronic) {
 async function resolveDirectGifUrl(url) {
   if (!url || typeof url !== 'string' || url === 'COLOCAR_URL_AQUI') return null;
 
+  // 1. Se já for uma URL direta de CDN de media (ex: media.giphy.com, media.tenor.com, media1.tenor.com, i.imgur.com)
   if (
     url.includes('giphy.com') ||
     url.includes('media.tenor.com') ||
@@ -419,6 +422,7 @@ async function resolveDirectGifUrl(url) {
     return url;
   }
 
+  // 2. Se for um link de página do Tenor sem ser CDN direto (ex: tenor.com/ZHXs.gif ou tenor.com/view/...)
   if (url.includes('tenor.com')) {
     try {
       const response = await fetch(url, {
@@ -436,6 +440,7 @@ async function resolveDirectGifUrl(url) {
     return null;
   }
 
+  // 3. Caso geral para outras imagens com extensão direta de ficheiro (.gif, .png, .jpg, .webp)
   const cleanUrl = url.split('?')[0].toLowerCase();
   const isDirectImage = ['.gif', '.png', '.jpg', '.webp'].some(ext => cleanUrl.endsWith(ext));
   if (isDirectImage) {
