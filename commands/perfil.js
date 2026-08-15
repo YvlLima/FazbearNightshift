@@ -18,9 +18,6 @@ module.exports = {
 
     const targetUser = interaction.options.getUser('utilizador') || interaction.user;
     const player = db.getOrCreatePlayer(targetUser.id);
-    const favAnimName = db.getFavoriteAnimatronic(targetUser.id);
-    const favAnim = getAnimatronicByName(favAnimName);
-    const favEmoji = favAnim ? favAnim.emoji : '🤖';
 
     const totalAttacks = player.total_attacks || 0;
     const totalWins = player.total_wins || 0;
@@ -29,9 +26,9 @@ module.exports = {
     const ennardUnlocked = db.hasUnlockedEnnard(targetUser.id);
     const ennardText = ennardUnlocked ? '✅ Desbloqueado' : '❌ Bloqueado';
 
-    const currentAnimName = player.animatronic || 'Nenhum';
-    const currentAnim = getAnimatronicByName(currentAnimName);
-    const currentEmoji = currentAnim ? currentAnim.emoji : '🤖';
+    const lastAnimName = player.animatronic || 'Nenhum';
+    const lastAnim = getAnimatronicByName(lastAnimName);
+    const lastEmoji = lastAnim ? lastAnim.emoji : '🤖';
 
     const embed = new EmbedBuilder()
       .setTitle(`👤 Perfil de Guarda Noturno — ${targetUser.username}`)
@@ -40,7 +37,12 @@ module.exports = {
       .addFields(
         {
           name: '❤️ Estado Atual',
-          value: `**HP:** ${player.current_hp} / ${player.max_hp} HP\n**Animatronic Atual:** ${currentEmoji} **${currentAnimName}**`,
+          value: `**HP:** ${player.current_hp} / ${player.max_hp} HP`,
+          inline: true
+        },
+        {
+          name: '🤖 Último Animatronic Usado',
+          value: `${lastEmoji} **${lastAnimName}**`,
           inline: true
         },
         {
@@ -51,11 +53,6 @@ module.exports = {
         {
           name: '⚔️ Desempenho em Duelos',
           value: `**Total de Ataques:** ${totalAttacks}\n**Taxa de Vitórias:** ${winRate}%`,
-          inline: true
-        },
-        {
-          name: '⭐ Animatronic Favorito',
-          value: `${favEmoji} **${favAnimName}** *(mais utilizado em combate)*`,
           inline: true
         },
         {

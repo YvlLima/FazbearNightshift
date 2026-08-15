@@ -7,14 +7,17 @@ module.exports = {
     .setDescription('Consulta o ranking de KOs dos jogadores deste servidor.'),
 
   async execute(interaction) {
-    if (db.init) await db.init();
-
     if (!interaction.guild) {
       return interaction.reply({
         content: '❌ Este comando só pode ser utilizado dentro de um servidor!',
         ephemeral: true
       });
     }
+
+    // Evita o timeout de 3s do Discord diferindo a resposta imediatamente
+    await interaction.deferReply();
+
+    if (db.init) await db.init();
 
     const allPlayersWithKills = db.getAllPlayersWithKills();
 
@@ -26,24 +29,31 @@ module.exports = {
 
     if (!allPlayersWithKills || allPlayersWithKills.length === 0) {
       embed.setDescription('Ainda ninguém foi derrotado neste servidor. Sê o primeiro a desligar um oponente!');
-      return interaction.reply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed] });
     }
 
-    // Tentar obter a lista de membros do servidor para filtrar apenas quem pertence a esta guild
-    let guildMemberIds = new Set();
-    try {
-      const members = await interaction.guild.members.fetch();
-      guildMemberIds = new Set(members.keys());
-    } catch (e) {
-      // Se não conseguir dar fetch massivo, usa os membros em cache
-      guildMemberIds = new Set(interaction.guild.members.cache.keys());
-    }
+    // Filtrar os jogadores com KOs que pertencem a este servidor (até ao limite de 10)
+    const localPlayers = [];
+    for (const p of allPlayersWithKills) {
+      if (localPlayers.length >= 10) break;
 
-    const localPlayers = allPlayersWithKills.filter(p => guildMemberIds.has(p.user_id)).slice(0, 10);
+      let member = interaction.guild.members.cache.get(p.user_id);
+      if (!member) {
+        try {
+          member = await interaction.guild.members.fetch(p.user_id);
+        } catch (e) {
+          member = null;
+        }
+      }
+
+      if (member) {
+        localPlayers.push(p);
+      }
+    }
 
     if (localPlayers.length === 0) {
       embed.setDescription('Nenhum membro ativo deste servidor possui KOs registados ainda.');
-      return interaction.reply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed] });
     }
 
     const medals = ['🥇', '🥈', '🥉'];
@@ -56,6 +66,6 @@ module.exports = {
     embed.setDescription(lines.join('\n\n'));
     embed.setFooter({ text: 'Ranking Local • Fazbear Nightshift' });
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   }
 };
