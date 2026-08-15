@@ -41,14 +41,14 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **Funtime Chica** | 🦩 | 13 – 19 | 8% | **Celebrity Flash**: Sorteia 50/50 entre Hipnotizado (stun 2 rondas) ou Confuso (1.5x dano próprio). |
 | **Funtime Freddy** | 🐻‍❄️ | 15 – 21 | 11% | **Bon-Bon Rocket**: Copia poder de Funtime Chica ou Funtime Foxy + 6 de dano extra. |
 | **Funtime Foxy** | 🦊 | 17 – 23 | 6% | **Hydraulic Overload**: Cura +9 HP + veneno 2.5x no próximo turno (no-resist). |
-| **Glamrock Freddy** | 🎤 | 14 – 20 | 9% | **Stomach Hatch Protect**: Engole o próximo ataque recebido e devolve 3x de dano + 2 rondas de cooldown duplo. |
-| **Glamrock Chica** | 🎸 | 11 – 17 | 11% | **Garbage Gobble**: Se HP < 20%, não morre (HP mín 1) por 3 ataques e duplica (2x) o próprio dano. |
+| **Glamrock Freddy** | 🎤 | 14 – 20 | 9% | **Stomach Hatch Protect**: Engole o próximo ataque recebido e devolve 2x de dano como contra-ataque. |
+| **Glamrock Chica** | 🎸 | 11 – 17 | 11% | **Garbage Gobble**: Se HP < 20%, não morre (HP mín 1) por 2 ataques e duplica (2x) o próprio dano. |
 | **Roxy** | 🏎️ | 15 – 21 | 8% | **Roxy's Eyes**: Limpa efeitos negativos ativos e confunde o alvo (+9 auto-dano no próximo ataque). |
-| **Monty** | 🐊 | 16 – 22 | 15% | **Monty Thrash**: Causa +15 de dano fixo adicional ao ataque com chute aéreo (30% fúria). |
-| **Sundrop/Moondrop** | ☀️ | 13 – 19 | 6% | **Day/Night Shift**: Sorteia 50/50 Modo Sun (cura +15 HP) ou Modo Moon (cega por 2 rondas + 3x dano). |
-| **Vanny** | 🔪 | 12 – 18 | 12% | **Glitch Override**: Hackeia o alvo por 3 ataques (causa 50% de auto-dano adicional ao atacar). |
-| **Security Puppet** | 🎁 | 10 – 16 | 13% | **Security Healing**: Restaura a vida para 100 HP, mas impõe cooldown duplo (2 min) no próximo ataque. |
-| **The Mimic** | 🤖 | 15 – 23 | 4% | **Data Copy**: Copia qualquer poder (exceto Golden Freddy/Ennard) e duplica x2 os valores de dano numéricos. |
+| **Monty** | 🐊 | 16 – 22 | 12% | **Monty Thrash**: Causa +10 de dano fixo adicional ao ataque (30% fúria) + ativa esquiva no próximo turno. |
+| **Sundrop/Moondrop** | ☀️ | 13 – 19 | 6% | **Day/Night Shift**: Sorteia 50/50 Modo Sun (cura +15 HP) ou Modo Moon (cega por 2 rondas + 2.5x dano). |
+| **Vanny** | 🔪 | 12 – 18 | 12% | **Glitch Override**: Hackeia o alvo por 2 ataques (causa 50% de auto-dano adicional ao atacar). |
+| **Security Puppet** | 🎁 | 10 – 16 | 13% | **Security Healing**: Restaura +40 HP ao atacante (máx. 100 HP) + cooldown duplo (2 min) no próximo ataque. |
+| **The Mimic** | 🤖 | 15 – 23 | 3% | **Data Copy**: Copia qualquer poder (exceto Golden Freddy/Ennard) e duplica x2 os valores de dano numéricos. |
 | **Ennard** | 🕸️ | 16 – 24 | **Gatilho (100%)** | **The Scooping Room**: Emergem após qualquer Funtime (5/5 desbloqueados), herdando 1 dos 5 poderes com 100% de certeza. |
 | **Golden Freddy** | ✨ | **100** | **1%** | **Lendário / Secreto**: Aparece com 1% de probabilidade e aplica Instakill imediato! |
 

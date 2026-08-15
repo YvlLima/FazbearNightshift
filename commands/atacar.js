@@ -142,14 +142,14 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
     }
     case 'Glamrock Freddy': {
       db.updatePlayerEffects(attackerUser.id, { stomach_protect_turns: 1 });
-      effectText = `🎤 **${power.name}**: **${attackerUser.username}** ativou a escotilha torácica! Engolirá o próximo ataque recebido, devolvendo-o triplicado (3x) e impondo 2 rondas de cooldown duplo ao agressor!`;
+      effectText = `🎤 **${power.name}**: **${attackerUser.username}** ativou a escotilha torácica! Engolirá o próximo ataque recebido, devolvendo-o duplicado (2x) como dano ao agressor!`;
       break;
     }
     case 'Glamrock Chica': {
       const currentAttacker = db.getOrCreatePlayer(attackerUser.id);
       if (currentAttacker.current_hp < 20) {
-        db.updatePlayerEffects(attackerUser.id, { life_saver_turns: 3, double_damage_turns: 3 });
-        effectText = `🎸 **${power.name}**: HP crítico (<20%)! **${attackerUser.username}** ativou o modo de sobrevivência: não pode morrer (HP mín 1) e causará 2x de dano pelos próximos 3 ataques!`;
+        db.updatePlayerEffects(attackerUser.id, { life_saver_turns: 2, double_damage_turns: 2 });
+        effectText = `🎸 **${power.name}**: HP crítico (<20%)! **${attackerUser.username}** ativou o modo de sobrevivência: não pode morrer (HP mín 1) e causará 2x de dano pelos próximos 2 ataques!`;
       } else {
         effectText = `🎸 **${power.name}**: **${attackerUser.username}** tentou ativar o Garbage Gobble, mas o seu HP não estava abaixo de 20% (${currentAttacker.current_hp} HP)!`;
       }
@@ -172,15 +172,16 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       break;
     }
     case 'Monty': {
-      let mDmg = 15;
+      let mDmg = 10;
       let resistNote = '';
       if (!isInvincible && target.resist_next_power === 1) {
-        mDmg = Math.floor(mDmg / 2); // 7
+        mDmg = Math.floor(mDmg / 2); // 5
         db.updatePlayerEffects(targetUser.id, { resist_next_power: 0 });
-        resistNote = ' *(Reduzido para 7 de dano pela Resistência!)*';
+        resistNote = ' *(Reduzido para 5 de dano pela Resistência!)*';
       }
       extraDamage = mDmg;
-      effectText = `🐊 **${power.name}**: Desferiu um potente chute aéreo com 30% de fúria, causando +${mDmg} de dano extra a **${targetUser.username}**!${resistNote}`;
+      db.updatePlayerEffects(attackerUser.id, { evade_next: 1 });
+      effectText = `🐊 **${power.name}**: Desferiu um potente chute aéreo com 30% de fúria, causando +${mDmg} de dano extra a **${targetUser.username}**!${resistNote} e ativou esquiva para o próximo ataque recebido!`;
       break;
     }
     case 'Sundrop/Moondrop': {
@@ -192,20 +193,22 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
         effectText = `☀️ **Moondrop (Modo Sun)**: O Sol brilhou! **${attackerUser.username}** curou **+15 HP**! (${healedHp}/100 HP)`;
       } else {
         db.updatePlayerEffects(targetUser.id, { blinded_turns: 2 });
-        extraDamage = baseDamage * 2;
-        effectText = `🌙 **Moondrop (Modo Moon)**: A Lua surgiu! Cegou **${targetUser.username}** por 2 turnos e triplicou (3x) o dano deste ataque!`;
+        extraDamage = Math.round(baseDamage * 1.5);
+        effectText = `🌙 **Moondrop (Modo Moon)**: A Lua surgiu! Cegou **${targetUser.username}** por 2 turnos e aumentou o dano deste ataque em 2.5x!`;
       }
       break;
     }
     case 'Vanny': {
-      db.updatePlayerEffects(targetUser.id, { hacked_turns: 3 });
-      effectText = `🔪 **${power.name}**: Hackeou o sistema de **${targetUser.username}** por 3 ataques! Qualquer dano que ele causar resultará em 50% de auto-dano extra!`;
+      db.updatePlayerEffects(targetUser.id, { hacked_turns: 2 });
+      effectText = `🔪 **${power.name}**: Hackeou o sistema de **${targetUser.username}** por 2 ataques! Qualquer dano que ele causar resultará em 50% de auto-dano extra!`;
       break;
     }
     case 'Security Puppet': {
-      db.updatePlayerHp(attackerUser.id, 100);
+      const currentAttacker = db.getOrCreatePlayer(attackerUser.id);
+      const healedHp = Math.min(attacker.max_hp || 100, currentAttacker.current_hp + 40);
+      db.updatePlayerHp(attackerUser.id, healedHp);
       db.updatePlayerEffects(attackerUser.id, { double_cooldown_turns: 1 });
-      effectText = `🎁 **${power.name}**: Restaurou instantaneamente a vida de **${attackerUser.username}** para **100 HP**! O próximo ataque terá cooldown duplicado (2 min)!`;
+      effectText = `🎁 **${power.name}**: Restaurou **+40 HP** a **${attackerUser.username}** (${healedHp}/100 HP)! O próximo ataque terá cooldown duplicado (2 min)!`;
       break;
     }
     case 'The Mimic': {
@@ -623,17 +626,22 @@ module.exports = {
     let stomachReflectMsg = '';
     if (!isInvincible && !isBalloraImmune && target.stomach_protect_turns === 1) {
       const incomingDmg = baseDamage + extraPowerDamage;
-      const reflectedDmg = Math.round(incomingDmg * 3);
+      let reflectedDmg = Math.round(incomingDmg * 2);
+      let resistNote = '';
+      if (currentAttackerState.resist_next_power === 1) {
+        reflectedDmg = Math.floor(reflectedDmg / 2);
+        db.updatePlayerEffects(attackerUser.id, { resist_next_power: 0 });
+        resistNote = ' *(Reduzido a metade pela Resistência!)*';
+      }
       baseDamage = 0;
       extraPowerDamage = 0;
 
       db.updatePlayerEffects(targetUser.id, { stomach_protect_turns: 0 });
-      db.updatePlayerEffects(attackerUser.id, { double_cooldown_turns: 2 });
 
       if (reflectedDmg > 0) {
         const newAttackerHp = Math.max(0, currentAttackerHp - reflectedDmg);
         db.updatePlayerHp(attackerUser.id, newAttackerHp);
-        stomachReflectMsg = `\n\n🎤 **STOMACH HATCH PROTECT**: **${targetUser.username}** engoliu o ataque e devolveu **${reflectedDmg}** de dano (3x) a **${attackerUser.username}**! Além disso, impôs 2 rondas de cooldown duplo (2 min)!`;
+        stomachReflectMsg = `\n\n🎤 **STOMACH HATCH PROTECT**: **${targetUser.username}** engoliu o ataque e devolveu **${reflectedDmg}** de dano (2x) a **${attackerUser.username}**!${resistNote}`;
         if (newAttackerHp === 0) {
           stomachReflectMsg += `\n💀 **${attackerUser.username}** foi desligado pelo contra-ataque do Glamrock Freddy!\n⚙️ A vida de **${attackerUser.username}** foi reiniciada para 100 HP.`;
           db.resetPlayerHp(attackerUser.id);

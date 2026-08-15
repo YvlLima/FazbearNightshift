@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database');
-const { ANIMATRONICS, GOLDEN_FREDDY, FUNTIME_NAMES } = require('../game/fnaf');
+const { ANIMATRONICS, FUNTIME_NAMES } = require('../game/fnaf');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,6 +17,7 @@ module.exports = {
     const classicosNames = ['Freddy', 'Foxy', 'Chica', 'Bonnie', 'Puppet', 'Springtrap'];
     const toysNames = ['Toy Freddy', 'Mangle', 'Toy Chica', 'Toy Bonnie', 'Balloon Boy'];
     const funtimesNames = ['Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Freddy', 'Funtime Foxy'];
+    const glamrocksNames = ['Glamrock Freddy', 'Glamrock Chica', 'Roxy', 'Monty', 'Sundrop/Moondrop', 'Vanny', 'Security Puppet', 'The Mimic'];
 
     const formatCategory = (nameList) => {
       return nameList.map(name => {
@@ -47,7 +48,7 @@ module.exports = {
       ennardSection = `🔓 **Progresso Ennard**: **${foundCount}/5** Funtimes encontrados.\n*(Falta encontrar: ${missingFuntimes.join(', ')})*`;
     }
 
-    const totalRosterCount = ANIMATRONICS.length + 1; // ANIMATRONICS + Golden Freddy
+    const totalRosterCount = ANIMATRONICS.length + 1; // ANIMATRONICS (incl. Ennard) + Golden Freddy = 26 total
     const totalSeenCount = seenList.length;
 
     const embed = new EmbedBuilder()
@@ -69,6 +70,11 @@ module.exports = {
         {
           name: '🎪 Funtimes (Sister Location)',
           value: formatCategory(funtimesNames),
+          inline: true
+        },
+        {
+          name: '🎤 Glamrocks & Security (Security Breach)',
+          value: formatCategory(glamrocksNames),
           inline: false
         },
         {

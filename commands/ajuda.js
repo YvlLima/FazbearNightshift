@@ -38,8 +38,9 @@ module.exports = {
         {
           name: '✨ Animatronics Secretos & Especiais',
           value:
-            '🐺 **Mangle**: Copia aleatoriamente o poder especial de um dos Toys (Toy Chica, Toy Bonnie, Toy Freddy) ou do Balloon Boy.\n' +
-            '🕸️ **Ennard**: Fusão dos 5 animatronics Funtime. Após descobrires os 5 Funtimes na tua coleção (Baby, Ballora, Funtime Chica, Funtime Freddy, Funtime Foxy), o **Ennard** emergirá no teu próximo ataque com **100% de probabilidade** de herdar um dos seus poderes!\n' +
+            '🐺 **Mangle**: Copia aleatoriamente o poder especial de um dos Toys ou do Balloon Boy.\n' +
+            '🤖 **The Mimic**: Copia qualquer poder do roster (exceto Golden Freddy e Ennard) e duplica 2x os seus valores numéricos!\n' +
+            '🕸️ **Ennard**: Fusão dos 5 animatronics Funtime. Após descobrires os 5 Funtimes na tua coleção, o **Ennard** emergirá no teu próximo ataque com **100% de probabilidade** de herdar um dos seus poderes!\n' +
             '✨ **Golden Freddy**: 1% de chance ultra-rara de ser sorteado em qualquer ataque! Causa **Instakill imediato (100 de dano)** e concede-te **2 turnos de invencibilidade total**.',
           inline: false
         },
