@@ -47,7 +47,7 @@ module.exports = {
     if (player.resist_next_power === 1) activeEffects.push(`🛡️ **Resistência Ativa** (divide por 2 próximo poder especial)`);
     if (player.invincible_turns > 0) activeEffects.push(`🌟 **Invencível** (${player.invincible_turns} turnos restantes)`);
     if (player.immune_turns > 0) activeEffects.push(`🩰 **Imune (Ballora)** (${player.immune_turns} rondas restantes)`);
-    if (player.reflect_turns > 0) activeEffects.push(`🪞 **Reflexo de Dano (Ballora - 2x)** (${player.reflect_turns} rondas restantes)`);
+    if (player.reflect_turns > 0) activeEffects.push(`🪞 **Reflexo de Dano (Ballora - 1.5x)** (${player.reflect_turns} rondas restantes)`);
     if (player.poisoned_turns > 0) {
       const pDmg = player.poison_damage || 8;
       activeEffects.push(`🧪 **Envenenado** (${pDmg} de dano por turno | ${player.poisoned_turns} rondas restantes)`);

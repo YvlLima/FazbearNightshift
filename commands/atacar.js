@@ -57,8 +57,8 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       break;
     }
     case 'Puppet': {
-      db.updatePlayerEffects(targetUser.id, { stunned_turns: 2, stun_dot: 6 });
-      effectText = `⛓️ **${power.name}**: Imobilizou **${targetUser.username}** em cabos de aço durante 2 turnos (sofrerá 6 de dano por cada turno imobilizado)!`;
+      db.updatePlayerEffects(targetUser.id, { stunned_turns: 2, stun_dot: 5 });
+      effectText = `⛓️ **${power.name}**: Imobilizou **${targetUser.username}** em cabos de aço durante 2 turnos (sofrerá 5 de dano por cada turno imobilizado)!`;
       break;
     }
     case 'Toy Freddy': {
@@ -67,32 +67,39 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
     }
     case 'Toy Chica': {
       const currentAttacker = db.getOrCreatePlayer(attackerUser.id);
-      const healedHp = Math.min(attacker.max_hp || 100, currentAttacker.current_hp + 12);
+      const healedHp = Math.min(attacker.max_hp || 100, currentAttacker.current_hp + 15);
       db.updatePlayerHp(attackerUser.id, healedHp);
-      effectText = `🐤 **${power.name}**: Comeu um lanche revigorante e curou **+12 HP** ao atacante! (${healedHp}/100 HP)`;
+      effectText = `🐤 **${power.name}**: Comeu um lanche revigorante e curou **+15 HP** ao atacante! (${healedHp}/100 HP)`;
       break;
     }
     case 'Toy Bonnie': {
-      extraDamage = 4;
+      let initialDmg = 4;
+      let resistNote = '';
+      if (!isInvincible && target.resist_next_power === 1) {
+        initialDmg = Math.floor(initialDmg / 2); // 2
+        db.updatePlayerEffects(targetUser.id, { resist_next_power: 0 });
+        resistNote = ' *(Reduzido para 2 de dano pela Resistência!)*';
+      }
+      extraDamage = initialDmg;
       db.updatePlayerEffects(targetUser.id, { poisoned_turns: 3, poison_damage: 8 });
-      effectText = `🧪 **${power.name}**: Causou +4 de dano direto inicial e envenenou **${targetUser.username}** durante 3 rondas (sofrerá 8 de dano por ronda)!`;
+      effectText = `🧪 **${power.name}**: Causou +${initialDmg} de dano direto inicial${resistNote} e envenenou **${targetUser.username}** durante 3 rondas (sofrerá 8 de dano por ronda)!`;
       break;
     }
     case 'Balloon Boy': {
-      db.updatePlayerEffects(targetUser.id, { blinded_turns: 3 });
-      effectText = `🎈 **${power.name}**: Cegou **${targetUser.username}** durante os próximos 3 ataques dele (sofrerá 11 de dano a cada ataque tentado)!`;
+      db.updatePlayerEffects(targetUser.id, { blinded_turns: 2 });
+      effectText = `🎈 **${power.name}**: Cegou **${targetUser.username}** durante os próximos 2 ataques dele (sofrerá 14 de dano a cada ataque tentado)!`;
       break;
     }
     case 'Circus Baby': {
-      const totalScooperDmg = Math.round(baseDamage * 2.5);
+      const totalScooperDmg = Math.round(baseDamage * 2.0);
       extraDamage = totalScooperDmg - baseDamage;
       db.updatePlayerEffects(targetUser.id, { stunned_turns: 2 });
-      effectText = `🎪 **${power.name}**: Aprisionou **${targetUser.username}** com a sua garra hidráulica por 2 rondas e causou 2.5x de dano (**${totalScooperDmg}** HP), ignorando esquiva e resistência!`;
+      effectText = `🎪 **${power.name}**: Aprisionou **${targetUser.username}** com a sua garra hidráulica por 2 rondas e causou 2x de dano (**${totalScooperDmg}** HP), ignorando esquiva e resistência!`;
       break;
     }
     case 'Ballora': {
       db.updatePlayerEffects(attackerUser.id, { reflect_turns: 2, immune_turns: 2 });
-      effectText = `🩰 **${power.name}**: **${attackerUser.username}** ativou a dança da Ballora! Durante 2 rondas, fica completamente imune a dano e reflete 2x todo o dano recebido de volta para quem a atacar!`;
+      effectText = `🩰 **${power.name}**: **${attackerUser.username}** ativou a dança da Ballora! Durante 2 rondas, fica completamente imune a dano e reflete 1.5x todo o dano recebido de volta para quem a atacar!`;
       break;
     }
     case 'Funtime Chica': {
@@ -111,8 +118,15 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       const chosenFtName = ftOptions[Math.floor(Math.random() * ftOptions.length)];
       const res = applyPowerEffect(chosenFtName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
       if (res) {
-        extraDamage = res.extraDamage + 6;
-        effectText = `🐻‍❄️ **${power.name}**: Lançou o Bon-Bon, copiando o poder de **${chosenFtName}** (+6 de dano extra)!\n➜ ${res.effectText}`;
+        let bonBonDmg = 6;
+        let resistNote = '';
+        if (!isInvincible && target.resist_next_power === 1) {
+          bonBonDmg = Math.floor(bonBonDmg / 2); // 3
+          db.updatePlayerEffects(targetUser.id, { resist_next_power: 0 });
+          resistNote = ' *(Bónus do Bon-Bon reduzido para +3 pela Resistência!)*';
+        }
+        extraDamage = res.extraDamage + bonBonDmg;
+        effectText = `🐻‍❄️ **${power.name}**: Lançou o Bon-Bon, copiando o poder de **${chosenFtName}** (+${bonBonDmg} de dano extra${resistNote})!\n➜ ${res.effectText}`;
       }
       break;
     }
@@ -238,13 +252,13 @@ module.exports = {
       statusDamageText += `\n🧪 Sofreste **${poisonDmg}** de dano de envenenamento! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
     }
 
-    // Cegueira (Flash Balloon: 11 dano próprio ao tentar atacar)
+    // Cegueira (Flash Balloon: 14 dano próprio ao tentar atacar)
     if (currentAttackerHp > 0 && currentAttackerState.blinded_turns > 0) {
       const remainingBlind = currentAttackerState.blinded_turns - 1;
-      currentAttackerHp = Math.max(0, currentAttackerHp - 11);
+      currentAttackerHp = Math.max(0, currentAttackerHp - 14);
       db.updatePlayerHp(attackerUser.id, currentAttackerHp);
       db.updatePlayerEffects(attackerUser.id, { blinded_turns: remainingBlind });
-      statusDamageText += `\n🙈 Estavas cego (Flash Balloon) e sofreste **11** de dano próprio ao tentar atacar! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
+      statusDamageText += `\n🙈 Estavas cego (Flash Balloon) e sofreste **14** de dano próprio ao tentar atacar! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
     }
 
     // Verificar se o atacante foi desligado por envenenamento/cegueira antes de prosseguir
@@ -457,7 +471,13 @@ module.exports = {
 
           if (result) {
             if (copiedAnimName === 'Toy Freddy') {
-              baseDamage = baseDamage * 2;
+              if (!isInvincible && target.resist_next_power === 1) {
+                baseDamage = Math.round(baseDamage * 1.5);
+                db.updatePlayerEffects(targetUser.id, { resist_next_power: 0 });
+                result.effectText += ' *(Fúria reduzida para 1.5x pela Resistência!)*';
+              } else {
+                baseDamage = baseDamage * 2;
+              }
             } else {
               extraPowerDamage = result.extraDamage;
             }
@@ -467,7 +487,13 @@ module.exports = {
           const result = applyPowerEffect(attacker.animatronic, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
           if (result) {
             if (attacker.animatronic === 'Toy Freddy') {
-              baseDamage = baseDamage * 2;
+              if (!isInvincible && target.resist_next_power === 1) {
+                baseDamage = Math.round(baseDamage * 1.5);
+                db.updatePlayerEffects(targetUser.id, { resist_next_power: 0 });
+                result.effectText += ' *(Fúria reduzida para 1.5x pela Resistência!)*';
+              } else {
+                baseDamage = baseDamage * 2;
+              }
             } else {
               extraPowerDamage = result.extraDamage;
             }
@@ -507,11 +533,11 @@ module.exports = {
     let balloraReflectMsg = '';
 
     if (isBalloraReflect && totalDamageDealt > 0) {
-      const reflectedDmg = Math.round(totalDamageDealt * 2);
+      const reflectedDmg = Math.round(totalDamageDealt * 1.5);
       const newAttackerHpAfterReflect = Math.max(0, currentAttackerHp - reflectedDmg);
       db.updatePlayerHp(attackerUser.id, newAttackerHpAfterReflect);
 
-      balloraReflectMsg = `\n\n🪞 **DANO REFLETIDO (Spindash Ballet)**: **${targetUser.username}** refletiu 2x o dano de volta! **${attackerUser.username}** sofreu **${reflectedDmg}** de dano! (${newAttackerHpAfterReflect}/${currentAttackerState.max_hp} HP)`;
+      balloraReflectMsg = `\n\n🪞 **DANO REFLETIDO (Spindash Ballet)**: **${targetUser.username}** refletiu 1.5x o dano de volta! **${attackerUser.username}** sofreu **${reflectedDmg}** de dano! (${newAttackerHpAfterReflect}/${currentAttackerState.max_hp} HP)`;
 
       if (newAttackerHpAfterReflect === 0) {
         balloraReflectMsg += `\n💀 **${attackerUser.username}** foi desligado pelo dano refletido da Ballora!\n⚙️ A vida de **${attackerUser.username}** foi reiniciada para 100 HP.`;

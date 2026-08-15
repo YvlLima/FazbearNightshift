@@ -26,18 +26,18 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | Animatronic | Emoji | Dano Base | Chance Poder | Poder Especial & Efeito |
 | :--- | :---: | :---: | :---: | :--- |
 | **Freddy** | 🐻 | 12 – 18 | 12% | **Phantom Screech**: Paralisa o alvo por 2 turnos e causa +10 de dano de choque. |
-| **Foxy** | 🦊 | 18 – 25 | 18% | **Super Combo**: Esquiva-se completamente do próximo ataque recebido. |
+| **Foxy** | 🦊 | 18 – 25 | 14% | **Super Combo**: Esquiva-se completamente do próximo ataque recebido. |
 | **Chica** | 🐥 | 10 – 15 | 15% | **Cupcake Bomb**: Causa +16 de dano explosivo adicional ao alvo. |
 | **Bonnie** | 🐰 | 15 – 21 | 11% | **Thrash Guitar**: Confunde o alvo; no próximo ataque, o dano vira-se contra ele próprio. |
-| **Springtrap** | 🐇 | 12 – 17 | 16% | **Springlock Guilty**: Ganha resistência que divide por 2 o próximo poder recebido. |
-| **Puppet** | 🎭 | 20 – 25 | 10% | **Steel Agony**: Imobiliza o alvo por 2 turnos + 6 dano de agonia por turno (12 total). |
+| **Springtrap** | 🐇 | 12 – 17 | 16% | **Springlock Guilty**: Ganha resistência que divide por 2 o próximo poder recebido (exceto Golden Freddy e no-resist). |
+| **Puppet** | 🎭 | 20 – 25 | 10% | **Steel Agony**: Imobiliza o alvo por 2 turnos + 5 dano de agonia por turno (10 total). |
 | **Toy Freddy** | 🧸 | 14 – 20 | 10% | **AI Rage**: Dobra o dano (2x) e ignora a esquiva do alvo. |
 | **Mangle** | 🐺 | 16 – 22 | 14% | **Wire Tangle**: Copia aleatoriamente o poder de um dos Toys (Toy Chica, Toy Bonnie, Toy Freddy) ou do Balloon Boy. |
-| **Toy Chica** | 🐤 | 11 – 16 | 17% | **Heal Food**: Regenera +12 HP ao atacante (máx. 100 HP). |
+| **Toy Chica** | 🐤 | 11 – 16 | 17% | **Heal Food**: Regenera +15 HP ao atacante (máx. 100 HP). |
 | **Toy Bonnie** | 🐰 | 13 – 19 | 9% | **Neon Gas**: Causa 4 dano direto + envenena o alvo por 3 rondas (8 dano/ronda). |
-| **Balloon Boy** | 🎈 | 8 – 14 | 8% | **Flash Balloon**: Cega o alvo por 3 ataques (11 dano próprio em cada tentativa). |
-| **Circus Baby** | 🎪 | 14 – 20 | 9% | **Scooper Reach**: Danos 2.5x + imobilização por 2 rondas (no-evade/no-resist). |
-| **Ballora** | 🩰 | 12 – 18 | 8% | **Spindash Ballet**: Imunidade a dano por 2 rondas + reflete 2x todo o dano recebido. |
+| **Balloon Boy** | 🎈 | 8 – 14 | 8% | **Flash Balloon**: Cega o alvo por 2 ataques (14 dano próprio em cada tentativa). |
+| **Circus Baby** | 🎪 | 14 – 20 | 9% | **Scooper Reach**: Danos 2x + imobilização por 2 rondas (no-evade/no-resist). |
+| **Ballora** | 🩰 | 12 – 18 | 8% | **Spindash Ballet**: Imunidade a dano por 2 rondas + reflete 1.5x todo o dano recebido. |
 | **Funtime Chica** | 🦩 | 13 – 19 | 8% | **Celebrity Flash**: Sorteia 50/50 entre Hipnotizado (stun 2 rondas) ou Confuso (1.5x dano próprio). |
 | **Funtime Freddy** | 🐻‍❄️ | 15 – 21 | 11% | **Bon-Bon Rocket**: Copia poder de Funtime Chica ou Funtime Foxy + 6 de dano extra. |
 | **Funtime Foxy** | 🦊 | 17 – 23 | 6% | **Hydraulic Overload**: Cura +9 HP + veneno 2.5x no próximo turno (no-resist). |

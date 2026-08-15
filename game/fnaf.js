@@ -29,7 +29,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Phantom Screech',
       chance: 0.12, // 12%
-      description: 'Paralisa o alvo durante 2 ataques dele e causa 10 de dano de choque adicional.'
+      description: 'Paralisa o alvo durante 2 ataques dele e causa 10 de dano de choque adicional (reduzido para 5 se o alvo tiver Resistência ativa do Springlock Guilty).'
     }
   },
   {
@@ -41,7 +41,7 @@ const ANIMATRONICS = [
     gif: 'https://media.giphy.com/media/QsgJi30B9ByH7tRhGV/giphy.gif',
     power: {
       name: 'Super Combo',
-      chance: 0.18, // 18%
+      chance: 0.14, // 14%
       description: 'O atacante esquiva-se do próximo ataque recebido (ignora completamente o dano).'
     }
   },
@@ -55,7 +55,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Cupcake Bomb',
       chance: 0.15, // 15%
-      description: 'Causa 16 de dano extra ao alvo.'
+      description: 'Causa 16 de dano explosivo extra ao alvo (reduzido para 8 se o alvo tiver Resistência ativa do Springlock Guilty).'
     }
   },
   {
@@ -81,7 +81,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Springlock Guilty',
       chance: 0.16, // 16%
-      description: 'Ganha resistência: no próximo poder especial recebido de outro jogador, o dano desse poder é dividido por 2.'
+      description: 'Ganha resistência: no próximo poder especial recebido de outro jogador (exceto Golden Freddy e poderes que ignoram resistência explicitamente), o dano é dividido por 2.'
     }
   },
   {
@@ -94,7 +94,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Steel Agony',
       chance: 0.10, // 10%
-      description: 'Imobiliza o alvo durante 2 ataques dele e causa 6 de dano adicional em cada um desses turnos bloqueados (12 no total).'
+      description: 'Imobiliza o alvo durante 2 ataques dele e causa 5 de dano adicional em cada um desses turnos bloqueados (10 no total).'
     }
   },
   {
@@ -133,7 +133,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Heal Food',
       chance: 0.17, // 17%
-      description: 'Cura 12 HP ao atacante (até ao máximo de 100 HP).'
+      description: 'Cura 15 HP ao atacante (até ao máximo de 100 HP).'
     }
   },
   {
@@ -159,7 +159,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Flash Balloon',
       chance: 0.08, // 8%
-      description: 'Cega o alvo durante os próximos 3 ataques dele (sofrerá 11 de dano por cada ataque tentado), ignorando resistência.'
+      description: 'Cega o alvo durante os próximos 2 ataques dele (sofrerá 14 de dano por cada ataque tentado), ignorando resistência.'
     }
   },
   {
@@ -172,7 +172,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Scooper Reach',
       chance: 0.09, // 9% (Ajustado para balanceamento)
-      description: 'Aprisiona o alvo por 2 rondas (não pode usar /atacar), causando 2.5x o dano principal do ataque e ignorando esquiva e resistência.'
+      description: 'Aprisiona o alvo com a garra hidráulica durante 2 rondas — o alvo fica impedido de usar /atacar nesse período — e causa 2x o dano principal do ataque, ignorando esquiva e resistência.'
     }
   },
   {
@@ -185,7 +185,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Spindash Ballet',
       chance: 0.08, // 8% (Ajustado para balanceamento)
-      description: 'Ganha imunidade total a dano por 2 rondas e reflete 2x todo o dano recebido de volta para os atacantes.'
+      description: 'O próprio atacante (quem usa a Ballora) fica imune a dano e reflete 1.5x qualquer dano que sofrer, durante os próximos 2 ataques que receber como alvo — não afeta o alvo deste ataque atual.'
     }
   },
   {
