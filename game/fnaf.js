@@ -313,7 +313,10 @@ async function resolveDirectGifUrl(url) {
   // 2. Se for um link de página do Tenor sem ser CDN direto (ex: tenor.com/ZHXs.gif ou tenor.com/view/...)
   if (url.includes('tenor.com')) {
     try {
-      const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+        signal: AbortSignal.timeout(2000)
+      });
       const html = await response.text();
       const match = html.match(/og:image\x22 content=\x22([^\x22]+)\x22/) || html.match(/content=\x22([^\x22]+\.gif[^\x22]*)\x22/);
       if (match && match[1]) {

@@ -35,6 +35,12 @@ client.once(Events.ClientReady, async (c) => {
   console.log(`🚀 Bot online com sucesso! Autenticado como: ${c.user.tag}`);
 });
 
+// Tratar erros do cliente Discord e Rejeições Não Tratadas sem derrubar o processo do bot
+client.on('error', (err) => console.error('⚠️ [ERRO CLIENTE DISCORD]:', err.message));
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ [REJEIÇÃO NÃO TRATADA]:', reason);
+});
+
 // Handler central de interações de comandos slash
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -50,15 +56,20 @@ client.on(Events.InteractionCreate, async (interaction) => {
   } catch (error) {
     console.error(`❌ Erro ao executar o comando /${interaction.commandName}:`, error);
 
-    const errorMessage = {
-      content: '❌ Ocorreu um erro ao processar este comando. Tenta novamente mais tarde!',
-      ephemeral: true
-    };
+    try {
+      const errorMessage = {
+        content: '❌ Ocorreu um erro ao processar este comando. Tenta novamente mais tarde!',
+        ephemeral: true
+      };
 
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(errorMessage);
-    } else {
-      await interaction.reply(errorMessage);
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(errorMessage);
+      } else {
+        await interaction.reply(errorMessage);
+      }
+    } catch (interactionErr) {
+      // Ignorar erros de interações expiradas ou desconhecidas (ex: 10062 Unknown Interaction)
+      console.warn(`[AVISO] Não foi possível responder à interação expirada: ${interactionErr.message}`);
     }
   }
 });
