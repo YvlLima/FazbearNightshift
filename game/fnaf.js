@@ -219,16 +219,33 @@ const ANIMATRONICS = [
       chance: 0.06, // 6%
       description: 'Cura 9 HP ao próprio atacante e envenena o alvo por 1 ronda com dano equivalente a 2.5x o dano principal, ignorando resistência.'
     }
+  },
+  {
+    name: 'Ennard',
+    emoji: '🕸️',
+    minDamage: 16,
+    maxDamage: 24,
+    description: 'Fusão de peças dos animatronics Funtime. Aparece obrigatoriamente após qualquer um deles, herdando aleatoriamente um dos seus poderes com certeza absoluta.',
+    gif: 'https://media.giphy.com/media/7EsrkwGqL82GONjDOR/giphy.gif',
+    power: {
+      name: 'The Scooping Room',
+      chance: null,
+      description: 'Ativa-se automaticamente na ronda seguinte a qualquer Funtime (Baby, Ballora, Funtime Freddy, Funtime Chica, Funtime Foxy), herdando aleatoriamente um dos 5 poderes principais com 100% de certeza.'
+    }
   }
 ];
+
+const FUNTIME_NAMES = ['Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Freddy', 'Funtime Foxy'];
 
 /**
  * Retorna um animatronic aleatório do roster padrão (exclui Golden Freddy).
  * @returns {object} Objeto do animatronic selecionado
  */
 function getRandomAnimatronic() {
-  const randomIndex = Math.floor(Math.random() * ANIMATRONICS.length);
-  return { ...ANIMATRONICS[randomIndex] };
+  // O sorteio normal exclui Ennard (já que Ennard só aparece via gatilho ennard_pending)
+  const regularAnimatronics = ANIMATRONICS.filter(a => a.name !== 'Ennard');
+  const randomIndex = Math.floor(Math.random() * regularAnimatronics.length);
+  return { ...regularAnimatronics[randomIndex] };
 }
 
 /**
@@ -239,8 +256,9 @@ function getRandomAnimatronic() {
 function getRandomDifferentAnimatronic(currentName) {
   if (!currentName) return getRandomAnimatronic();
 
+  // Exclui Ennard e o animatronic atual do sorteio normal
   const filtered = ANIMATRONICS.filter(
-    a => a.name.toLowerCase() !== currentName.toLowerCase()
+    a => a.name !== 'Ennard' && a.name.toLowerCase() !== currentName.toLowerCase()
   );
 
   const randomIndex = Math.floor(Math.random() * filtered.length);
@@ -320,6 +338,7 @@ async function resolveDirectGifUrl(url) {
 module.exports = {
   GOLDEN_FREDDY,
   ANIMATRONICS,
+  FUNTIME_NAMES,
   getRandomAnimatronic,
   getRandomDifferentAnimatronic,
   getAnimatronicByName,

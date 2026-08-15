@@ -41,6 +41,7 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **Funtime Chica** | 🦩 | 13 – 19 | 8% | **Celebrity Flash**: Sorteia 50/50 entre Hipnotizado (stun 2 rondas) ou Confuso (1.5x dano próprio). |
 | **Funtime Freddy** | 🐻‍❄️ | 15 – 21 | 11% | **Bon-Bon Rocket**: Copia poder de Funtime Chica ou Funtime Foxy + 6 de dano extra. |
 | **Funtime Foxy** | 🦊 | 17 – 23 | 6% | **Hydraulic Overload**: Cura +9 HP + veneno 2.5x no próximo turno (no-resist). |
+| **Ennard** | 🕸️ | 16 – 24 | **Gatilho (100%)** | **The Scooping Room**: Emergem após qualquer Funtime (5/5 desbloqueados), herdando 1 dos 5 poderes com 100% de certeza. |
 | **Golden Freddy** | ✨ | **100** | **1%** | **Lendário / Secreto**: Aparece com 1% de probabilidade e aplica Instakill imediato! |
 
 ---

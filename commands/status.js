@@ -29,7 +29,18 @@ module.exports = {
     const player = db.getOrCreatePlayer(targetUser.id);
     const hasAttacked = Boolean(player.last_attack > 0 && player.animatronic);
 
+    const { FUNTIME_NAMES } = require('../game/fnaf');
+    let funtimesSeenList = [];
+    try {
+      funtimesSeenList = JSON.parse(player.funtimes_seen || '[]');
+    } catch(e) {
+      funtimesSeenList = [];
+    }
+    const funtimesCount = FUNTIME_NAMES.filter(name => funtimesSeenList.includes(name)).length;
+    const isEnnardUnlocked = funtimesCount === 5;
+
     const activeEffects = [];
+    if (player.ennard_pending === 1) activeEffects.push(`🕸️ **Ennard Pendente** (Emergirá com 100% de certeza no próximo ataque!)`);
     if (player.stunned_turns > 0) activeEffects.push(`⚡ **Paralisado/Imobilizado** (${player.stunned_turns} turnos restantes)`);
     if (player.confused_turns > 0) {
       const multText = (player.confused_multiplier && player.confused_multiplier > 1.0) ? ` [${player.confused_multiplier}x dano próprio]` : '';
@@ -59,6 +70,11 @@ module.exports = {
         {
           name: '☠️ Eliminações',
           value: `**${player.kills || 0} KOs**`,
+          inline: true
+        },
+        {
+          name: '🕸️ Coleção Ennard',
+          value: `**${funtimesCount}/5 Funtimes** ${isEnnardUnlocked ? '✨ *(Desbloqueado!)*' : ''}`,
           inline: true
         }
       )

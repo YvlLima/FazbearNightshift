@@ -33,6 +33,8 @@ const CREATE_TABLE_SQL = `
     blinded_turns INTEGER NOT NULL DEFAULT 0,
     reflect_turns INTEGER NOT NULL DEFAULT 0,
     immune_turns INTEGER NOT NULL DEFAULT 0,
+    ennard_pending INTEGER NOT NULL DEFAULT 0,
+    funtimes_seen TEXT NOT NULL DEFAULT '[]',
     kills INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
@@ -62,6 +64,8 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasImmune = false;
     let hasConfusedMult = false;
     let hasPoisonDamage = false;
+    let hasEnnardPending = false;
+    let hasFuntimesSeen = false;
 
     while (checkStmt.step()) {
       const obj = checkStmt.getAsObject();
@@ -72,10 +76,12 @@ let dbReadyPromise = initSqlJs().then(SQL => {
       if (obj.name === 'immune_turns') hasImmune = true;
       if (obj.name === 'confused_multiplier') hasConfusedMult = true;
       if (obj.name === 'poison_damage') hasPoisonDamage = true;
+      if (obj.name === 'ennard_pending') hasEnnardPending = true;
+      if (obj.name === 'funtimes_seen') hasFuntimesSeen = true;
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasFuntimesSeen) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
@@ -85,6 +91,8 @@ let dbReadyPromise = initSqlJs().then(SQL => {
         if (!hasImmune) rawDb.run("ALTER TABLE players ADD COLUMN immune_turns INTEGER NOT NULL DEFAULT 0;");
         if (!hasConfusedMult) rawDb.run("ALTER TABLE players ADD COLUMN confused_multiplier REAL NOT NULL DEFAULT 1.0;");
         if (!hasPoisonDamage) rawDb.run("ALTER TABLE players ADD COLUMN poison_damage INTEGER NOT NULL DEFAULT 8;");
+        if (!hasEnnardPending) rawDb.run("ALTER TABLE players ADD COLUMN ennard_pending INTEGER NOT NULL DEFAULT 0;");
+        if (!hasFuntimesSeen) rawDb.run("ALTER TABLE players ADD COLUMN funtimes_seen TEXT NOT NULL DEFAULT '[]';");
       } catch (e) {
         console.error('Erro na migração:', e.message);
       }
@@ -115,8 +123,8 @@ const dbAdapter = {
 
     if (!player) {
       rawDb.run(
-        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, kills)
-         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0)`,
+        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, funtimes_seen, kills)
+         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, '[]', 0)`,
         [
           userId,
           FIXED_PLAYER_MAX_HP,
@@ -142,6 +150,20 @@ const dbAdapter = {
     rawDb.run(
       `UPDATE players SET animatronic = 'Golden Freddy', min_damage = 100, max_damage = 100, updated_at = datetime('now') WHERE user_id = ?`,
       [userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  assignEnnard(userId) {
+    this.getOrCreatePlayer(userId);
+    const ennardData = getAnimatronicByName('Ennard');
+    const minDmg = ennardData ? ennardData.minDamage : 16;
+    const maxDmg = ennardData ? ennardData.maxDamage : 24;
+
+    rawDb.run(
+      `UPDATE players SET animatronic = 'Ennard', min_damage = ?, max_damage = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [minDmg, maxDmg, userId]
     );
     saveDatabase();
     return this.getOrCreatePlayer(userId);
@@ -203,6 +225,53 @@ const dbAdapter = {
     );
     saveDatabase();
     return this.getOrCreatePlayer(userId);
+  },
+
+  setEnnardPending(userId, pending) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET ennard_pending = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [pending ? 1 : 0, userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  recordFuntimeSeen(userId, animName) {
+    const { FUNTIME_NAMES } = require('./game/fnaf');
+    if (!FUNTIME_NAMES.includes(animName)) return { seenList: [], isUnlocked: false };
+
+    const player = this.getOrCreatePlayer(userId);
+    let seenList = [];
+    try {
+      seenList = JSON.parse(player.funtimes_seen || '[]');
+    } catch(e) {
+      seenList = [];
+    }
+
+    if (!seenList.includes(animName)) {
+      seenList.push(animName);
+      rawDb.run(
+        `UPDATE players SET funtimes_seen = ?, updated_at = datetime('now') WHERE user_id = ?`,
+        [JSON.stringify(seenList), userId]
+      );
+      saveDatabase();
+    }
+
+    const isUnlocked = FUNTIME_NAMES.every(name => seenList.includes(name));
+    return { seenList, isUnlocked };
+  },
+
+  hasUnlockedEnnard(userId) {
+    const { FUNTIME_NAMES } = require('./game/fnaf');
+    const player = this.getOrCreatePlayer(userId);
+    let seenList = [];
+    try {
+      seenList = JSON.parse(player.funtimes_seen || '[]');
+    } catch(e) {
+      seenList = [];
+    }
+    return FUNTIME_NAMES.every(name => seenList.includes(name));
   },
 
   incrementPlayerKills(userId) {

@@ -302,17 +302,39 @@ module.exports = {
       return interaction.reply({ embeds: [confusedEmbed] });
     }
 
-    // 8. SORTEIO DO ANIMATRONIC: 1% de chance secreta para GOLDEN FREDDY
-    const isGoldenFreddyDrawn = Math.random() < 0.01;
+    // 8. VERIFICAÇÃO DE GATILHO DO ENNARD (SALA DE SCOOPING)
+    const isEnnardForced = currentAttackerState.ennard_pending === 1;
+    let isGoldenFreddyDrawn = false;
     let attacker;
     let animInfo;
+    let forcedEnnardPowerName = null;
 
-    if (isGoldenFreddyDrawn) {
-      attacker = db.assignGoldenFreddy(attackerUser.id);
-      animInfo = getAnimatronicByName('Golden Freddy');
+    if (isEnnardForced) {
+      attacker = db.assignEnnard(attackerUser.id);
+      animInfo = getAnimatronicByName('Ennard');
+      db.setEnnardPending(attackerUser.id, 0); // Consome o gatilho pendente
+
+      // Sortear aleatoriamente 1 dos 5 Funtimes para herdar o poder com 100% de certeza
+      forcedEnnardPowerName = FUNTIME_NAMES[Math.floor(Math.random() * FUNTIME_NAMES.length)];
     } else {
-      attacker = db.assignNewDifferentAnimatronic(attackerUser.id);
-      animInfo = getAnimatronicByName(attacker.animatronic);
+      // Sorteio regular: 1% de chance secreta para GOLDEN FREDDY ou animatronic normal
+      isGoldenFreddyDrawn = Math.random() < 0.01;
+
+      if (isGoldenFreddyDrawn) {
+        attacker = db.assignGoldenFreddy(attackerUser.id);
+        animInfo = getAnimatronicByName('Golden Freddy');
+      } else {
+        attacker = db.assignNewDifferentAnimatronic(attackerUser.id);
+        animInfo = getAnimatronicByName(attacker.animatronic);
+      }
+
+      // Se saiu um dos 5 Funtimes, registar na coleção do jogador e ativar gatilho do Ennard se elegível
+      if (FUNTIME_NAMES.includes(attacker.animatronic)) {
+        const { isUnlocked } = db.recordFuntimeSeen(attackerUser.id, attacker.animatronic);
+        if (isUnlocked) {
+          db.setEnnardPending(attackerUser.id, 1);
+        }
+      }
     }
     db.setLastAttack(attackerUser.id, now);
 
@@ -386,36 +408,50 @@ module.exports = {
     let powerEffectText = '';
     let extraPowerDamage = 0;
 
-    const powerChance = animInfo.power ? animInfo.power.chance : 0;
-    if (!isInvincible && animInfo.power && Math.random() < powerChance) {
+    if (isEnnardForced && forcedEnnardPowerName) {
+      // ENNARD: Ativação com 100% de garantia do poder Funtime herdado
       isPowerActivated = true;
-
-      if (attacker.animatronic === 'Mangle') {
-        const possiblePowers = [
-          'Freddy', 'Foxy', 'Chica', 'Bonnie', 'Springtrap',
-          'Puppet', 'Toy Freddy', 'Toy Chica', 'Toy Bonnie', 'Balloon Boy',
-          'Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Freddy', 'Funtime Foxy'
-        ];
-        const copiedAnimName = possiblePowers[Math.floor(Math.random() * possiblePowers.length)];
-        const result = applyPowerEffect(copiedAnimName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
-
-        if (result) {
-          if (copiedAnimName === 'Toy Freddy') {
-            baseDamage = baseDamage * 2;
-          } else {
-            extraPowerDamage = result.extraDamage;
-          }
-          powerEffectText = `🐺 **${animInfo.power.name}**: Copiou o poder de **${copiedAnimName}** (${result.power.name})!\n➜ ${result.effectText}`;
+      const result = applyPowerEffect(forcedEnnardPowerName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
+      if (result) {
+        if (forcedEnnardPowerName === 'Toy Freddy') {
+          baseDamage = baseDamage * 2;
+        } else {
+          extraPowerDamage = result.extraDamage;
         }
-      } else {
-        const result = applyPowerEffect(attacker.animatronic, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
-        if (result) {
-          if (attacker.animatronic === 'Toy Freddy') {
-            baseDamage = baseDamage * 2;
-          } else {
-            extraPowerDamage = result.extraDamage;
+        powerEffectText = `🕸️ **ENNARD EMERGIU DA SALA DE SCOOPING!**\nHerdou o poder especial de **${forcedEnnardPowerName}** com 100% de certeza!\n➜ ${result.effectText}`;
+      }
+    } else {
+      const powerChance = animInfo.power ? animInfo.power.chance : 0;
+      if (!isInvincible && animInfo.power && Math.random() < powerChance) {
+        isPowerActivated = true;
+
+        if (attacker.animatronic === 'Mangle') {
+          const possiblePowers = [
+            'Freddy', 'Foxy', 'Chica', 'Bonnie', 'Springtrap',
+            'Puppet', 'Toy Freddy', 'Toy Chica', 'Toy Bonnie', 'Balloon Boy',
+            'Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Freddy', 'Funtime Foxy'
+          ];
+          const copiedAnimName = possiblePowers[Math.floor(Math.random() * possiblePowers.length)];
+          const result = applyPowerEffect(copiedAnimName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
+
+          if (result) {
+            if (copiedAnimName === 'Toy Freddy') {
+              baseDamage = baseDamage * 2;
+            } else {
+              extraPowerDamage = result.extraDamage;
+            }
+            powerEffectText = `🐺 **${animInfo.power.name}**: Copiou o poder de **${copiedAnimName}** (${result.power.name})!\n➜ ${result.effectText}`;
           }
-          powerEffectText = result.effectText;
+        } else {
+          const result = applyPowerEffect(attacker.animatronic, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
+          if (result) {
+            if (attacker.animatronic === 'Toy Freddy') {
+              baseDamage = baseDamage * 2;
+            } else {
+              extraPowerDamage = result.extraDamage;
+            }
+            powerEffectText = result.effectText;
+          }
         }
       }
     }
@@ -477,9 +513,12 @@ module.exports = {
     }
 
     // 16. CONSTRUÇÃO DO EMBED FINAL DE DUELO
+    const embedColor = isTargetKo ? 0x992d22 : (isEnnardForced ? 0x4a4b4d : (isPowerActivated ? 0xf1c40f : 0xe74c3c));
+    const embedTitle = isEnnardForced ? '🕸️ Duelo FNAF — ENNARD EMERGIU!' : '⚔️ Duelo FNAF — Ataque Desferido!';
+
     const embed = new EmbedBuilder()
-      .setTitle('⚔️ Duelo FNAF — Ataque Desferido!')
-      .setColor(isTargetKo ? 0x992d22 : (isPowerActivated ? 0xf1c40f : 0xe74c3c))
+      .setTitle(embedTitle)
+      .setColor(embedColor)
       .setThumbnail(attackerUser.displayAvatarURL({ dynamic: true }))
       .addFields(
         {
@@ -511,7 +550,7 @@ module.exports = {
 
     if (isPowerActivated) {
       embed.addFields({
-        name: `✨ Poder Especial Ativado: ${animInfo.power.name}`,
+        name: `✨ Poder Especial Ativado: ${animInfo.power ? animInfo.power.name : 'Scooping Room'}`,
         value: powerEffectText,
         inline: false
       });
