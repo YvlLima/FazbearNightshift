@@ -5,7 +5,7 @@ const { getAnimatronicByName } = require('../game/fnaf');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('perfil')
-    .setDescription('Consulta o perfil e estatísticas de combate de um jogador.')
+    .setDescription('Consulta o perfil e estatísticas de combate acumuladas de um jogador.')
     .addUserOption(option =>
       option
         .setName('utilizador')
@@ -17,14 +17,19 @@ module.exports = {
     if (db.init) await db.init();
 
     const targetUser = interaction.options.getUser('utilizador') || interaction.user;
+
+    if (targetUser.bot) {
+      return interaction.reply({
+        content: '❌ Os bots não participam no jogo!',
+        ephemeral: true
+      });
+    }
+
     const player = db.getOrCreatePlayer(targetUser.id);
 
     const totalAttacks = player.total_attacks || 0;
     const totalWins = player.total_wins || 0;
     const winRate = totalAttacks > 0 ? ((totalWins / totalAttacks) * 100).toFixed(1) : '0.0';
-
-    const ennardUnlocked = db.hasUnlockedEnnard(targetUser.id);
-    const ennardText = ennardUnlocked ? '✅ Desbloqueado' : '❌ Bloqueado';
 
     const lastAnimName = player.animatronic || 'Nenhum';
     const lastAnim = getAnimatronicByName(lastAnimName);
@@ -36,8 +41,8 @@ module.exports = {
       .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 256 }))
       .addFields(
         {
-          name: '❤️ Estado Atual',
-          value: `**HP:** ${player.current_hp} / ${player.max_hp} HP`,
+          name: '❤️ Vida Atual',
+          value: `**${player.current_hp}/${player.max_hp} HP**`,
           inline: true
         },
         {
@@ -46,18 +51,18 @@ module.exports = {
           inline: true
         },
         {
-          name: '💀 Estatísticas de KO',
-          value: `**Total KOs (Kills):** ${player.kills}\n**Vitórias (KOs causados):** ${totalWins}`,
+          name: '💀 Eliminações (KOs / Vitórias)',
+          value: `**${player.kills} KOs**`,
           inline: true
         },
         {
-          name: '⚔️ Desempenho em Duelos',
-          value: `**Total de Ataques:** ${totalAttacks}\n**Taxa de Vitórias:** ${winRate}%`,
+          name: '⚔️ Total de Ataques',
+          value: `**${totalAttacks} ataques**`,
           inline: true
         },
         {
-          name: '🕸️ Progresso do Ennard',
-          value: `${ennardText}`,
+          name: '🎯 Taxa de Vitórias',
+          value: `**${winRate}%**`,
           inline: true
         }
       )
