@@ -122,7 +122,7 @@ const ANIMATRONICS = [
     minDamage: 11,
     maxDamage: 16,
     description: 'Elegante e sorrateira com lanches revigorantes.',
-    gif: 'https://media.giphy.com/media/28NE7KlI1HDx8Ok1DR/giphy.gif',
+    gif: 'https://media.giphy.com/media/TQevPAh9wfiWc1WEov/giphy.gif',
     power: {
       name: 'Heal Food',
       chance: 0.17, // 17%
@@ -148,7 +148,7 @@ const ANIMATRONICS = [
     minDamage: 8,
     maxDamage: 14,
     description: 'Provocador e irritante que cega os oponentes.',
-    gif: 'https://media.giphy.com/media/gYjtIXMooJVELkcLuU/giphy.gif',
+    gif: 'https://media.giphy.com/media/XNWNulPYk7PUy2VByy/giphy.gif',
     power: {
       name: 'Flash Balloon',
       chance: 0.08, // 8%
