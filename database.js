@@ -40,6 +40,12 @@ const CREATE_TABLE_SQL = `
     kills INTEGER NOT NULL DEFAULT 0,
     total_attacks INTEGER NOT NULL DEFAULT 0,
     total_wins INTEGER NOT NULL DEFAULT 0,
+    stomach_protect_turns INTEGER NOT NULL DEFAULT 0,
+    double_cooldown_turns INTEGER NOT NULL DEFAULT 0,
+    life_saver_turns INTEGER NOT NULL DEFAULT 0,
+    double_damage_turns INTEGER NOT NULL DEFAULT 0,
+    extra_self_damage INTEGER NOT NULL DEFAULT 0,
+    hacked_turns INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   );
@@ -84,6 +90,12 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasSeenAnimatronics = false;
     let hasTotalAttacks = false;
     let hasTotalWins = false;
+    let hasStomachProtect = false;
+    let hasDoubleCooldown = false;
+    let hasLifeSaver = false;
+    let hasDoubleDamage = false;
+    let hasExtraSelfDamage = false;
+    let hasHackedTurns = false;
 
     while (checkStmt.step()) {
       const obj = checkStmt.getAsObject();
@@ -100,10 +112,16 @@ let dbReadyPromise = initSqlJs().then(SQL => {
       if (obj.name === 'seen_animatronics') hasSeenAnimatronics = true;
       if (obj.name === 'total_attacks') hasTotalAttacks = true;
       if (obj.name === 'total_wins') hasTotalWins = true;
+      if (obj.name === 'stomach_protect_turns') hasStomachProtect = true;
+      if (obj.name === 'double_cooldown_turns') hasDoubleCooldown = true;
+      if (obj.name === 'life_saver_turns') hasLifeSaver = true;
+      if (obj.name === 'double_damage_turns') hasDoubleDamage = true;
+      if (obj.name === 'extra_self_damage') hasExtraSelfDamage = true;
+      if (obj.name === 'hacked_turns') hasHackedTurns = true;
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins || !hasStomachProtect || !hasDoubleCooldown || !hasLifeSaver || !hasDoubleDamage || !hasExtraSelfDamage || !hasHackedTurns) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
@@ -119,6 +137,12 @@ let dbReadyPromise = initSqlJs().then(SQL => {
         if (!hasSeenAnimatronics) rawDb.run("ALTER TABLE players ADD COLUMN seen_animatronics TEXT NOT NULL DEFAULT '[]';");
         if (!hasTotalAttacks) rawDb.run("ALTER TABLE players ADD COLUMN total_attacks INTEGER NOT NULL DEFAULT 0;");
         if (!hasTotalWins) rawDb.run("ALTER TABLE players ADD COLUMN total_wins INTEGER NOT NULL DEFAULT 0;");
+        if (!hasStomachProtect) rawDb.run("ALTER TABLE players ADD COLUMN stomach_protect_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasDoubleCooldown) rawDb.run("ALTER TABLE players ADD COLUMN double_cooldown_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasLifeSaver) rawDb.run("ALTER TABLE players ADD COLUMN life_saver_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasDoubleDamage) rawDb.run("ALTER TABLE players ADD COLUMN double_damage_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasExtraSelfDamage) rawDb.run("ALTER TABLE players ADD COLUMN extra_self_damage INTEGER NOT NULL DEFAULT 0;");
+        if (!hasHackedTurns) rawDb.run("ALTER TABLE players ADD COLUMN hacked_turns INTEGER NOT NULL DEFAULT 0;");
       } catch (e) {
         console.error('Erro na migração:', e.message);
       }
@@ -149,8 +173,8 @@ const dbAdapter = {
 
     if (!player) {
       rawDb.run(
-        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, ennard_unlocked, funtimes_seen, seen_animatronics, kills, total_attacks, total_wins)
-         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, '[]', '[]', 0, 0, 0)`,
+        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, ennard_unlocked, funtimes_seen, seen_animatronics, kills, total_attacks, total_wins, stomach_protect_turns, double_cooldown_turns, life_saver_turns, double_damage_turns, extra_self_damage, hacked_turns)
+         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, '[]', '[]', 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
         [
           userId,
           FIXED_PLAYER_MAX_HP,
@@ -244,10 +268,16 @@ const dbAdapter = {
     const blinded_turns = effects.blinded_turns !== undefined ? effects.blinded_turns : player.blinded_turns;
     const reflect_turns = effects.reflect_turns !== undefined ? effects.reflect_turns : player.reflect_turns;
     const immune_turns = effects.immune_turns !== undefined ? effects.immune_turns : player.immune_turns;
+    const stomach_protect_turns = effects.stomach_protect_turns !== undefined ? effects.stomach_protect_turns : (player.stomach_protect_turns || 0);
+    const double_cooldown_turns = effects.double_cooldown_turns !== undefined ? effects.double_cooldown_turns : (player.double_cooldown_turns || 0);
+    const life_saver_turns = effects.life_saver_turns !== undefined ? effects.life_saver_turns : (player.life_saver_turns || 0);
+    const double_damage_turns = effects.double_damage_turns !== undefined ? effects.double_damage_turns : (player.double_damage_turns || 0);
+    const extra_self_damage = effects.extra_self_damage !== undefined ? effects.extra_self_damage : (player.extra_self_damage || 0);
+    const hacked_turns = effects.hacked_turns !== undefined ? effects.hacked_turns : (player.hacked_turns || 0);
 
     rawDb.run(
-      `UPDATE players SET stunned_turns = ?, stun_dot = ?, confused_turns = ?, confused_multiplier = ?, evade_next = ?, resist_next_power = ?, invincible_turns = ?, poisoned_turns = ?, poison_damage = ?, blinded_turns = ?, reflect_turns = ?, immune_turns = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, userId]
+      `UPDATE players SET stunned_turns = ?, stun_dot = ?, confused_turns = ?, confused_multiplier = ?, evade_next = ?, resist_next_power = ?, invincible_turns = ?, poisoned_turns = ?, poison_damage = ?, blinded_turns = ?, reflect_turns = ?, immune_turns = ?, stomach_protect_turns = ?, double_cooldown_turns = ?, life_saver_turns = ?, double_damage_turns = ?, extra_self_damage = ?, hacked_turns = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, stomach_protect_turns, double_cooldown_turns, life_saver_turns, double_damage_turns, extra_self_damage, hacked_turns, userId]
     );
     saveDatabase();
     return this.getOrCreatePlayer(userId);

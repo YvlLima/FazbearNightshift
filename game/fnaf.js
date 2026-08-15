@@ -228,6 +228,110 @@ const ANIMATRONICS = [
     }
   },
   {
+    name: 'Glamrock Freddy',
+    emoji: '🎤',
+    minDamage: 14,
+    maxDamage: 20,
+    description: 'Líder dos Glamrocks com a escotilha torácica protetora.',
+    gif: 'https://media.giphy.com/media/VnNxHtrNStgRj9pYpG/giphy.gif',
+    power: {
+      name: 'Stomach Hatch Protect',
+      chance: 0.09, // 9%
+      description: 'Engole o próximo ataque recebido e devolve-o triplicado (3x) como dano ao agressor, aplicando-lhe 2 rondas de cooldown duplo (2 min de espera).'
+    }
+  },
+  {
+    name: 'Glamrock Chica',
+    emoji: '🎸',
+    minDamage: 11,
+    maxDamage: 17,
+    description: 'Guitarrista voraz que resiste aos danos mais críticos.',
+    gif: 'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif',
+    power: {
+      name: 'Garbage Gobble',
+      chance: 0.11, // 11%
+      description: 'Se o HP do atacante estiver abaixo de 20%, impede-o de morrer (HP mínimo 1) durante os próximos 3 ataques sofridos e duplica (2x) o dano do seu próprio ataque nesse período.'
+    }
+  },
+  {
+    name: 'Roxy',
+    emoji: '🏎️',
+    minDamage: 15,
+    maxDamage: 21,
+    description: 'Pilota narcisista com visão de raios-X e deteção de falhas.',
+    gif: 'https://media.giphy.com/media/26n6WywJyh39n1pBu/giphy.gif',
+    power: {
+      name: "Roxy's Eyes",
+      chance: 0.08, // 8%
+      description: 'Anula qualquer efeito negativo ativo no atacante e confunde o alvo no próximo ataque com +9 de dano auto-infligido.'
+    }
+  },
+  {
+    name: 'Monty',
+    emoji: '🐊',
+    minDamage: 16,
+    maxDamage: 22,
+    description: 'Baixista agressivo com investidas violentas e saltos devastadores.',
+    gif: 'https://media.giphy.com/media/3o6Zt8zHP6tXQdKjfi/giphy.gif',
+    power: {
+      name: 'Monty Thrash',
+      chance: 0.15, // 15%
+      description: 'Causa +15 de dano fixo adicional ao ataque com um potente chute aéreo com 30% de fúria.'
+    }
+  },
+  {
+    name: 'Sundrop/Moondrop',
+    emoji: '☀️',
+    minDamage: 13,
+    maxDamage: 19,
+    description: 'Animatronic de personalidade dupla que alterna entre luz e trevas.',
+    gif: 'https://media.giphy.com/media/d1E1msGYEOw80/giphy.gif',
+    power: {
+      name: 'Day/Night Shift',
+      chance: 0.06, // 6%
+      description: 'Sorteia 50/50 entre Modo Sun (cura +15 HP ao atacante) ou Modo Moon (cega o alvo por 2 turnos e triplica 3x o dano deste ataque).'
+    }
+  },
+  {
+    name: 'Vanny',
+    emoji: '🔪',
+    minDamage: 12,
+    maxDamage: 18,
+    description: 'Seguidora mascarada que corrompe o sistema de combate.',
+    gif: 'https://media.giphy.com/media/13Hgw8T855u520/giphy.gif',
+    power: {
+      name: 'Glitch Override',
+      chance: 0.12, // 12%
+      description: 'Aplica o estado Hackeado ao alvo por 3 ataques — o alvo sofre 50% de auto-dano adicional em cada ataque que realizar nesse período.'
+    }
+  },
+  {
+    name: 'Security Puppet',
+    emoji: '🎁',
+    minDamage: 10,
+    maxDamage: 16,
+    description: 'Guardião de emergência que restaura sistemas críticos.',
+    gif: 'https://media.giphy.com/media/3o7TKs38gPfQDknvwk/giphy.gif',
+    power: {
+      name: 'Security Healing',
+      chance: 0.13, // 13%
+      description: 'Restaura instantaneamente o HP do atacante para 100 HP, mas o seu próximo ataque terá cooldown duplicado (2 minutos).'
+    }
+  },
+  {
+    name: 'The Mimic',
+    emoji: '🤖',
+    minDamage: 15,
+    maxDamage: 23,
+    description: 'Endosqueleto antigo capaz de replicar qualquer padrão de combate.',
+    gif: 'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif',
+    power: {
+      name: 'Data Copy',
+      chance: 0.04, // 4%
+      description: 'Copia o poder de qualquer animatronic do roster (exceto Golden Freddy e Ennard) e duplica 2x os seus valores de dano numéricos.'
+    }
+  },
+  {
     name: 'Ennard',
     emoji: '🕸️',
     minDamage: 16,
@@ -354,11 +458,14 @@ function getAllAnimatronics() {
   return [...ANIMATRONICS, { ...GOLDEN_FREDDY }];
 }
 
+const MIMIC_EXCLUDED_NAMES = ['Golden Freddy', 'Ennard', 'The Mimic'];
+
 module.exports = {
   GOLDEN_FREDDY,
   ANIMATRONICS,
   FUNTIME_NAMES,
   MANGLE_COPIABLE_NAMES,
+  MIMIC_EXCLUDED_NAMES,
   getRandomAnimatronic,
   getRandomDifferentAnimatronic,
   getAnimatronicByName,

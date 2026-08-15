@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database');
 const config = require('../config');
-const { rollDamage, getAnimatronicByName, resolveDirectGifUrl, FUNTIME_NAMES, MANGLE_COPIABLE_NAMES } = require('../game/fnaf');
+const { rollDamage, getAnimatronicByName, resolveDirectGifUrl, FUNTIME_NAMES, MANGLE_COPIABLE_NAMES, MIMIC_EXCLUDED_NAMES, ANIMATRONICS } = require('../game/fnaf');
 
 /**
  * Função utilitária reutilizável para aplicar o efeito de um poder especial a um atacante e alvo.
@@ -140,6 +140,84 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       effectText = `🦊 **${power.name}**: Curou **+9 HP** a **${attackerUser.username}** (${healedHp}/100 HP) e envenenou **${targetUser.username}** por 1 ronda com **${poisonDmg}** de dano hidráulico (2.5x), ignorando resistência!`;
       break;
     }
+    case 'Glamrock Freddy': {
+      db.updatePlayerEffects(attackerUser.id, { stomach_protect_turns: 1 });
+      effectText = `🎤 **${power.name}**: **${attackerUser.username}** ativou a escotilha torácica! Engolirá o próximo ataque recebido, devolvendo-o triplicado (3x) e impondo 2 rondas de cooldown duplo ao agressor!`;
+      break;
+    }
+    case 'Glamrock Chica': {
+      const currentAttacker = db.getOrCreatePlayer(attackerUser.id);
+      if (currentAttacker.current_hp < 20) {
+        db.updatePlayerEffects(attackerUser.id, { life_saver_turns: 3, double_damage_turns: 3 });
+        effectText = `🎸 **${power.name}**: HP crítico (<20%)! **${attackerUser.username}** ativou o modo de sobrevivência: não pode morrer (HP mín 1) e causará 2x de dano pelos próximos 3 ataques!`;
+      } else {
+        effectText = `🎸 **${power.name}**: **${attackerUser.username}** tentou ativar o Garbage Gobble, mas o seu HP não estava abaixo de 20% (${currentAttacker.current_hp} HP)!`;
+      }
+      break;
+    }
+    case 'Roxy': {
+      db.updatePlayerEffects(attackerUser.id, {
+        poisoned_turns: 0,
+        blinded_turns: 0,
+        stunned_turns: 0,
+        confused_turns: 0,
+        hacked_turns: 0
+      });
+      db.updatePlayerEffects(targetUser.id, {
+        confused_turns: 1,
+        confused_multiplier: 1.0,
+        extra_self_damage: 9
+      });
+      effectText = `🏎️ **${power.name}**: **${attackerUser.username}** usou a visão de raios-X para limpar todos os seus efeitos negativos e confundiu **${targetUser.username}** (+9 de auto-dano no próximo ataque)!`;
+      break;
+    }
+    case 'Monty': {
+      let mDmg = 15;
+      let resistNote = '';
+      if (!isInvincible && target.resist_next_power === 1) {
+        mDmg = Math.floor(mDmg / 2); // 7
+        db.updatePlayerEffects(targetUser.id, { resist_next_power: 0 });
+        resistNote = ' *(Reduzido para 7 de dano pela Resistência!)*';
+      }
+      extraDamage = mDmg;
+      effectText = `🐊 **${power.name}**: Desferiu um potente chute aéreo com 30% de fúria, causando +${mDmg} de dano extra a **${targetUser.username}**!${resistNote}`;
+      break;
+    }
+    case 'Sundrop/Moondrop': {
+      const isSun = Math.random() < 0.5;
+      if (isSun) {
+        const currentAttacker = db.getOrCreatePlayer(attackerUser.id);
+        const healedHp = Math.min(100, currentAttacker.current_hp + 15);
+        db.updatePlayerHp(attackerUser.id, healedHp);
+        effectText = `☀️ **Moondrop (Modo Sun)**: O Sol brilhou! **${attackerUser.username}** curou **+15 HP**! (${healedHp}/100 HP)`;
+      } else {
+        db.updatePlayerEffects(targetUser.id, { blinded_turns: 2 });
+        extraDamage = baseDamage * 2;
+        effectText = `🌙 **Moondrop (Modo Moon)**: A Lua surgiu! Cegou **${targetUser.username}** por 2 turnos e triplicou (3x) o dano deste ataque!`;
+      }
+      break;
+    }
+    case 'Vanny': {
+      db.updatePlayerEffects(targetUser.id, { hacked_turns: 3 });
+      effectText = `🔪 **${power.name}**: Hackeou o sistema de **${targetUser.username}** por 3 ataques! Qualquer dano que ele causar resultará em 50% de auto-dano extra!`;
+      break;
+    }
+    case 'Security Puppet': {
+      db.updatePlayerHp(attackerUser.id, 100);
+      db.updatePlayerEffects(attackerUser.id, { double_cooldown_turns: 1 });
+      effectText = `🎁 **${power.name}**: Restaurou instantaneamente a vida de **${attackerUser.username}** para **100 HP**! O próximo ataque terá cooldown duplicado (2 min)!`;
+      break;
+    }
+    case 'The Mimic': {
+      const allRegular = ANIMATRONICS.filter(a => !MIMIC_EXCLUDED_NAMES.includes(a.name));
+      const chosenAnim = allRegular[Math.floor(Math.random() * allRegular.length)];
+      const res = applyPowerEffect(chosenAnim.name, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
+      if (res) {
+        extraDamage = res.extraDamage * 2;
+        effectText = `🤖 **${power.name}**: Copiou e duplicou (2x) o poder de **${chosenAnim.name}**!\n➜ ${res.effectText} *(Valores numéricos de dano duplicados!)*`;
+      }
+      break;
+    }
   }
 
   return { power, extraDamage, effectText };
@@ -181,20 +259,25 @@ module.exports = {
     // 3. Obter registo atual do atacante para verificar o cooldown e efeitos
     const currentAttackerState = db.getOrCreatePlayer(attackerUser.id);
 
-    // 4. Verificar cooldown de 1 minuto (60.000 ms) por jogador
+    // 4. Verificar cooldown (com suporte a double_cooldown_turns)
     const now = Date.now();
-    const cooldownMs = config.attackCooldownMs || 60 * 1000;
+    const isDoubleCooldown = currentAttackerState.double_cooldown_turns > 0;
+    const cooldownMs = isDoubleCooldown ? 120 * 1000 : (config.attackCooldownMs || 60 * 1000);
     const timePassed = now - currentAttackerState.last_attack;
 
     if (timePassed < cooldownMs) {
       const remainingSeconds = Math.ceil((cooldownMs - timePassed) / 1000);
       const cooldownEmbed = new EmbedBuilder()
         .setTitle('⏳ Cooldown de Ataque')
-        .setDescription(`Tens de aguardar **${remainingSeconds} segundos** antes de desferires outro ataque!`)
+        .setDescription(`Tens de aguardar **${remainingSeconds} segundos** antes de desferires outro ataque!${isDoubleCooldown ? ' *(Cooldown Duplo de 2 minutos ativo!)*' : ''}`)
         .setColor(0xf1c40f)
         .setTimestamp();
 
       return interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
+    }
+
+    if (isDoubleCooldown) {
+      db.updatePlayerEffects(attackerUser.id, { double_cooldown_turns: currentAttackerState.double_cooldown_turns - 1 });
     }
 
     // 5. VERIFICAÇÃO DE EFEITOS NO ATACANTE (PARALISIA / IMOBILIZAÇÃO)
@@ -278,9 +361,11 @@ module.exports = {
     // 7. VERIFICAÇÃO DE EFEITOS NO ATACANTE (CONFUSÃO)
     if (currentAttackerState.confused_turns > 0) {
       const mult = currentAttackerState.confused_multiplier || 1.0;
+      const extraSelfDmg = currentAttackerState.extra_self_damage || 0;
       db.updatePlayerEffects(attackerUser.id, {
         confused_turns: currentAttackerState.confused_turns - 1,
-        confused_multiplier: 1.0
+        confused_multiplier: 1.0,
+        extra_self_damage: 0
       });
 
       const attacker = db.assignNewDifferentAnimatronic(attackerUser.id);
@@ -288,7 +373,7 @@ module.exports = {
       db.setLastAttack(attackerUser.id, now);
 
       const rawDamage = rollDamage(animInfo);
-      const damageDealt = Math.round(rawDamage * mult);
+      const damageDealt = Math.round(rawDamage * mult) + extraSelfDmg;
       const newAttackerHp = Math.max(0, currentAttackerHp - damageDealt);
       db.updatePlayerHp(attackerUser.id, newAttackerHp);
 
@@ -528,9 +613,36 @@ module.exports = {
       baseDamage = 0;
     }
 
-    // 14. CÁLCULO FINAL DE DANO E HP DO ALVO OU REFLEXO DA BALLORA
+    // 14. CÁLCULO FINAL DE DANO E HP DO ALVO OU REFLEXO DA BALLORA / STOMACH HATCH
+    if (currentAttackerState.double_damage_turns > 0) {
+      baseDamage = baseDamage * 2;
+      db.updatePlayerEffects(attackerUser.id, { double_damage_turns: currentAttackerState.double_damage_turns - 1 });
+      statusDamageText += '\n🎸 **Garbage Gobble**: Dano do ataque duplicado (2x)!';
+    }
+
+    let stomachReflectMsg = '';
+    if (!isInvincible && !isBalloraImmune && target.stomach_protect_turns === 1) {
+      const incomingDmg = baseDamage + extraPowerDamage;
+      const reflectedDmg = Math.round(incomingDmg * 3);
+      baseDamage = 0;
+      extraPowerDamage = 0;
+
+      db.updatePlayerEffects(targetUser.id, { stomach_protect_turns: 0 });
+      db.updatePlayerEffects(attackerUser.id, { double_cooldown_turns: 2 });
+
+      if (reflectedDmg > 0) {
+        const newAttackerHp = Math.max(0, currentAttackerHp - reflectedDmg);
+        db.updatePlayerHp(attackerUser.id, newAttackerHp);
+        stomachReflectMsg = `\n\n🎤 **STOMACH HATCH PROTECT**: **${targetUser.username}** engoliu o ataque e devolveu **${reflectedDmg}** de dano (3x) a **${attackerUser.username}**! Além disso, impôs 2 rondas de cooldown duplo (2 min)!`;
+        if (newAttackerHp === 0) {
+          stomachReflectMsg += `\n💀 **${attackerUser.username}** foi desligado pelo contra-ataque do Glamrock Freddy!\n⚙️ A vida de **${attackerUser.username}** foi reiniciada para 100 HP.`;
+          db.resetPlayerHp(attackerUser.id);
+        }
+      }
+    }
+
     let totalDamageDealt = (isInvincible || isBalloraImmune) ? 0 : (baseDamage + extraPowerDamage);
-    let balloraReflectMsg = '';
+    let balloraReflectMsg = stomachReflectMsg;
 
     if (isBalloraReflect && totalDamageDealt > 0) {
       const reflectedDmg = Math.round(totalDamageDealt * 1.5);
@@ -547,7 +659,21 @@ module.exports = {
       totalDamageDealt = 0;
     }
 
-    const newTargetHp = Math.max(0, target.current_hp - totalDamageDealt);
+    if (currentAttackerState.hacked_turns > 0 && totalDamageDealt > 0) {
+      const hackedDmg = Math.round(totalDamageDealt * 0.5);
+      currentAttackerHp = Math.max(0, currentAttackerHp - hackedDmg);
+      db.updatePlayerHp(attackerUser.id, currentAttackerHp);
+      db.updatePlayerEffects(attackerUser.id, { hacked_turns: currentAttackerState.hacked_turns - 1 });
+      statusDamageText += `\n💻 Estavas hackeado (Glitch Override) e sofreste **${hackedDmg}** de dano próprio (50% do dano causado)! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
+    }
+
+    let newTargetHp = Math.max(0, target.current_hp - totalDamageDealt);
+    let lifeSaverMsg = '';
+    if (target.life_saver_turns > 0 && newTargetHp === 0 && totalDamageDealt > 0) {
+      newTargetHp = 1;
+      db.updatePlayerEffects(targetUser.id, { life_saver_turns: target.life_saver_turns - 1 });
+      lifeSaverMsg = `\n\n🍕 **GARBAGE GOBBLE**: **${targetUser.username}** recusou-se a cair e sobreviveu com **1 HP**!`;
+    }
     db.updatePlayerHp(targetUser.id, newTargetHp);
 
     // 15. Verificar se o alvo foi desligado (0 HP)
@@ -627,7 +753,9 @@ module.exports = {
     }
 
     if (isTargetKo) {
-      embed.setDescription(koMessage);
+      embed.setDescription(koMessage + lifeSaverMsg);
+    } else if (lifeSaverMsg) {
+      embed.setDescription(lifeSaverMsg);
     }
 
     await interaction.reply({ embeds: [embed] });

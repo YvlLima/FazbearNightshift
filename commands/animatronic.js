@@ -1,12 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { getAllAnimatronics, getAnimatronicByName, resolveDirectGifUrl } = require('../game/fnaf');
 
-const allAnimatronics = getAllAnimatronics();
-const animChoices = allAnimatronics.map(a => ({
-  name: `${a.emoji} ${a.name}`,
-  value: a.name
-}));
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('animatronic')
@@ -14,10 +8,21 @@ module.exports = {
     .addStringOption(option =>
       option
         .setName('nome')
-        .setDescription('Escolhe o animatronic da lista')
+        .setDescription('Escolhe ou digita o nome do animatronic')
         .setRequired(true)
-        .addChoices(...animChoices)
+        .setAutocomplete(true)
     ),
+
+  async autocomplete(interaction) {
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    const allAnimatronics = getAllAnimatronics();
+    const filtered = allAnimatronics.filter(a =>
+      a.name.toLowerCase().includes(focusedValue)
+    );
+    await interaction.respond(
+      filtered.slice(0, 25).map(a => ({ name: `${a.emoji} ${a.name}`, value: a.name }))
+    );
+  },
 
   async execute(interaction) {
     const animName = interaction.options.getString('nome');

@@ -52,7 +52,12 @@ module.exports = {
       const pDmg = player.poison_damage || 8;
       activeEffects.push(`🧪 **Envenenado** (${pDmg} de dano por turno | ${player.poisoned_turns} rondas restantes)`);
     }
-    if (player.blinded_turns > 0) activeEffects.push(`🙈 **Cego** (11 de dano próprio ao atacar | ${player.blinded_turns} ataques restantes)`);
+    if (player.blinded_turns > 0) activeEffects.push(`🙈 **Cego** (14 de dano próprio ao atacar | ${player.blinded_turns} ataques restantes)`);
+    if (player.stomach_protect_turns === 1) activeEffects.push(`🎤 **Escotilha Torácica (Glamrock Freddy)** (engole próximo ataque e devolve 3x)`);
+    if (player.double_cooldown_turns > 0) activeEffects.push(`⏳ **Cooldown Duplo** (2 min de espera | ${player.double_cooldown_turns} rondas restantes)`);
+    if (player.life_saver_turns > 0) activeEffects.push(`🍕 **Modo Sobrevivência (Garbage Gobble)** (HP mín 1 | ${player.life_saver_turns} rondas restantes)`);
+    if (player.double_damage_turns > 0) activeEffects.push(`🎸 **Dano Duplo (2x)** (${player.double_damage_turns} rondas restantes)`);
+    if (player.hacked_turns > 0) activeEffects.push(`💻 **Hackeado (Glitch Override)** (50% auto-dano ao atacar | ${player.hacked_turns} ataques restantes)`);
 
     const effectsText = activeEffects.length > 0 ? activeEffects.join('\n') : 'Nenhum efeito ativo';
     const ennardText = isEnnardUnlocked ? 'Desbloqueado ✅' : `**${funtimesCount}/5** Funtimes descobertos`;
