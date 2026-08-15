@@ -54,6 +54,6 @@ module.exports = {
       .setFooter({ text: 'Fazbear Nightshift • Duelos PvP' })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 };
