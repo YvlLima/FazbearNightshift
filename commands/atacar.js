@@ -5,9 +5,9 @@ const { rollDamage, getAnimatronicByName, resolveDirectGifUrl } = require('../ga
 
 /**
  * Função utilitária reutilizável para aplicar o efeito de um poder especial a um atacante e alvo.
- * Utilizada tanto pelo próprio dono do poder como pelo poder "Wire Tangle" do Mangle.
+ * Utilizada tanto pelo próprio dono do poder como pelos poderes de cópia do Mangle e Funtime Freddy.
  */
-function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attacker, isInvincible, isEvadeIgnoredByToyFreddy = false) {
+function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage = 0) {
   const animData = getAnimatronicByName(powerAnimName);
   if (!animData || !animData.power) return null;
 
@@ -47,7 +47,7 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       break;
     }
     case 'Bonnie': {
-      db.updatePlayerEffects(targetUser.id, { confused_turns: 1 });
+      db.updatePlayerEffects(targetUser.id, { confused_turns: 1, confused_multiplier: 1.0 });
       effectText = `🎸 **${power.name}**: **${targetUser.username}** ficou confuso! No próximo ataque dele, o dano vira-se contra ele próprio!`;
       break;
     }
@@ -74,13 +74,56 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
     }
     case 'Toy Bonnie': {
       extraDamage = 4;
-      db.updatePlayerEffects(targetUser.id, { poisoned_turns: 3 });
+      db.updatePlayerEffects(targetUser.id, { poisoned_turns: 3, poison_damage: 8 });
       effectText = `🧪 **${power.name}**: Causou +4 de dano direto inicial e envenenou **${targetUser.username}** durante 3 rondas (sofrerá 8 de dano por ronda)!`;
       break;
     }
     case 'Balloon Boy': {
       db.updatePlayerEffects(targetUser.id, { blinded_turns: 3 });
       effectText = `🎈 **${power.name}**: Cegou **${targetUser.username}** durante os próximos 3 ataques dele (sofrerá 11 de dano a cada ataque tentado)!`;
+      break;
+    }
+    case 'Circus Baby': {
+      const totalScooperDmg = Math.round(baseDamage * 2.5);
+      extraDamage = totalScooperDmg - baseDamage;
+      db.updatePlayerEffects(targetUser.id, { stunned_turns: 2 });
+      effectText = `🎪 **${power.name}**: Aprisionou **${targetUser.username}** com a sua garra hidráulica por 2 rondas e causou 2.5x de dano (**${totalScooperDmg}** HP), ignorando esquiva e resistência!`;
+      break;
+    }
+    case 'Ballora': {
+      db.updatePlayerEffects(attackerUser.id, { reflect_turns: 2, immune_turns: 2 });
+      effectText = `🩰 **${power.name}**: **${attackerUser.username}** ativou a dança da Ballora! Durante 2 rondas, fica completamente imune a dano e reflete 2x todo o dano recebido de volta para quem a atacar!`;
+      break;
+    }
+    case 'Funtime Chica': {
+      const isStun = Math.random() < 0.5;
+      if (isStun) {
+        db.updatePlayerEffects(targetUser.id, { stunned_turns: 2 });
+        effectText = `🦩 **${power.name}**: **${targetUser.username}** ficou hipnotizado pelo flash e foi imobilizado durante 2 rondas!`;
+      } else {
+        db.updatePlayerEffects(targetUser.id, { confused_turns: 1, confused_multiplier: 1.5 });
+        effectText = `🦩 **${power.name}**: **${targetUser.username}** ficou completamente desorientado! No próximo ataque dele, o dano vira-se contra ele próprio com **1.5x de multiplicador**!`;
+      }
+      break;
+    }
+    case 'Funtime Freddy': {
+      const ftOptions = ['Funtime Chica', 'Funtime Foxy'];
+      const chosenFtName = ftOptions[Math.floor(Math.random() * ftOptions.length)];
+      const res = applyPowerEffect(chosenFtName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
+      if (res) {
+        extraDamage = res.extraDamage + 6;
+        effectText = `🐻‍❄️ **${power.name}**: Lançou o Bon-Bon, copiando o poder de **${chosenFtName}** (+6 de dano extra)!\n➜ ${res.effectText}`;
+      }
+      break;
+    }
+    case 'Funtime Foxy': {
+      const currentAttacker = db.getOrCreatePlayer(attackerUser.id);
+      const healedHp = Math.min(attacker.max_hp || 100, currentAttacker.current_hp + 9);
+      db.updatePlayerHp(attackerUser.id, healedHp);
+
+      const poisonDmg = Math.round(baseDamage * 2.5);
+      db.updatePlayerEffects(targetUser.id, { poisoned_turns: 1, poison_damage: poisonDmg });
+      effectText = `🦊 **${power.name}**: Curou **+9 HP** a **${attackerUser.username}** (${healedHp}/100 HP) e envenenou **${targetUser.username}** por 1 ronda com **${poisonDmg}** de dano hidráulico (2.5x), ignorando resistência!`;
       break;
     }
   }
@@ -182,13 +225,17 @@ module.exports = {
     let statusDamageText = '';
     let currentAttackerHp = currentAttackerState.current_hp;
 
-    // Envenenamento (Neon Gas: 8 dano por ronda)
+    // Envenenamento
     if (currentAttackerState.poisoned_turns > 0) {
       const remainingPoison = currentAttackerState.poisoned_turns - 1;
-      currentAttackerHp = Math.max(0, currentAttackerHp - 8);
+      const poisonDmg = currentAttackerState.poison_damage || 8;
+      currentAttackerHp = Math.max(0, currentAttackerHp - poisonDmg);
       db.updatePlayerHp(attackerUser.id, currentAttackerHp);
-      db.updatePlayerEffects(attackerUser.id, { poisoned_turns: remainingPoison });
-      statusDamageText += `\n🧪 Sofreste **8** de dano de envenenamento (Neon Gas)! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
+      db.updatePlayerEffects(attackerUser.id, {
+        poisoned_turns: remainingPoison,
+        poison_damage: remainingPoison === 0 ? 8 : poisonDmg
+      });
+      statusDamageText += `\n🧪 Sofreste **${poisonDmg}** de dano de envenenamento! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
     }
 
     // Cegueira (Flash Balloon: 11 dano próprio ao tentar atacar)
@@ -214,17 +261,20 @@ module.exports = {
       return interaction.reply({ embeds: [statusKoEmbed] });
     }
 
-    // 7. VERIFICAÇÃO DE EFEITOS NO ATACANTE (CONFUSÃO - Thrash Guitar)
+    // 7. VERIFICAÇÃO DE EFEITOS NO ATACANTE (CONFUSÃO)
     if (currentAttackerState.confused_turns > 0) {
+      const mult = currentAttackerState.confused_multiplier || 1.0;
       db.updatePlayerEffects(attackerUser.id, {
-        confused_turns: currentAttackerState.confused_turns - 1
+        confused_turns: currentAttackerState.confused_turns - 1,
+        confused_multiplier: 1.0
       });
 
       const attacker = db.assignNewDifferentAnimatronic(attackerUser.id);
       const animInfo = getAnimatronicByName(attacker.animatronic);
       db.setLastAttack(attackerUser.id, now);
 
-      const damageDealt = rollDamage(animInfo);
+      const rawDamage = rollDamage(animInfo);
+      const damageDealt = Math.round(rawDamage * mult);
       const newAttackerHp = Math.max(0, currentAttackerHp - damageDealt);
       db.updatePlayerHp(attackerUser.id, newAttackerHp);
 
@@ -235,11 +285,12 @@ module.exports = {
         db.resetPlayerHp(attackerUser.id);
       }
 
+      const multText = mult > 1.0 ? ` *(Dano multiplicado por ${mult}x!)*` : '';
       const confusedEmbed = new EmbedBuilder()
         .setTitle('🌀 Ataque Confuso — Dano Próprio!')
         .setColor(0x9b59b6)
         .setThumbnail(attackerUser.displayAvatarURL({ dynamic: true }))
-        .setDescription(`**${attackerUser.username}** usou **${attacker.emoji} ${attacker.animatronic}** mas estava **confuso** (Thrash Guitar)!${statusDamageText}\n\n💥 Em vez de atacar o alvo, o dano de **${damageDealt}** virou-se contra si próprio! (${newAttackerHp}/${currentAttackerState.max_hp} HP)${koMessage}`)
+        .setDescription(`**${attackerUser.username}** usou **${attacker.emoji} ${attacker.animatronic}** mas estava **confuso**!${statusDamageText}\n\n💥 Em vez de atacar o alvo, o dano de **${damageDealt}** virou-se contra si próprio!${multText} (${newAttackerHp}/${currentAttackerState.max_hp} HP)${koMessage}`)
         .setFooter({ text: 'Cooldown de 1 minuto aplicado ao atacante.' })
         .setTimestamp();
 
@@ -272,7 +323,7 @@ module.exports = {
     if (isGoldenFreddyDrawn) {
       db.updatePlayerHp(targetUser.id, 0);
       db.updatePlayerEffects(attackerUser.id, { invincible_turns: 2 });
-      db.incrementPlayerKills(attackerUser.id); // Incrementa o contador de KOs do atacante
+      db.incrementPlayerKills(attackerUser.id);
 
       const koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **Golden Freddy**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
       db.resetPlayerHp(targetUser.id);
@@ -305,12 +356,27 @@ module.exports = {
       return interaction.reply({ embeds: [goldenEmbed] });
     }
 
-    // 11. VERIFICAÇÃO DE INVENCIBILIDADE DO ALVO (Concedida pelo Golden Freddy)
+    // 11. VERIFICAÇÃO DE EFEITOS DEFENSIVOS DO ALVO (INVENCIBILIDADE, IMUNIDADE E REFLEXO DA BALLORA)
     let isInvincible = false;
     if (target.invincible_turns > 0) {
       isInvincible = true;
       const remainingInvincible = target.invincible_turns - 1;
       db.updatePlayerEffects(targetUser.id, { invincible_turns: remainingInvincible });
+      target = db.getOrCreatePlayer(targetUser.id);
+    }
+
+    let isBalloraImmune = false;
+    let isBalloraReflect = false;
+
+    if (!isInvincible && target.immune_turns > 0) {
+      isBalloraImmune = true;
+      db.updatePlayerEffects(targetUser.id, { immune_turns: target.immune_turns - 1 });
+      target = db.getOrCreatePlayer(targetUser.id);
+    }
+
+    if (!isInvincible && target.reflect_turns > 0) {
+      isBalloraReflect = true;
+      db.updatePlayerEffects(targetUser.id, { reflect_turns: target.reflect_turns - 1 });
       target = db.getOrCreatePlayer(targetUser.id);
     }
 
@@ -327,10 +393,11 @@ module.exports = {
       if (attacker.animatronic === 'Mangle') {
         const possiblePowers = [
           'Freddy', 'Foxy', 'Chica', 'Bonnie', 'Springtrap',
-          'Puppet', 'Toy Freddy', 'Toy Chica', 'Toy Bonnie', 'Balloon Boy'
+          'Puppet', 'Toy Freddy', 'Toy Chica', 'Toy Bonnie', 'Balloon Boy',
+          'Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Freddy', 'Funtime Foxy'
         ];
         const copiedAnimName = possiblePowers[Math.floor(Math.random() * possiblePowers.length)];
-        const result = applyPowerEffect(copiedAnimName, attackerUser, targetUser, target, attacker, isInvincible);
+        const result = applyPowerEffect(copiedAnimName, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
 
         if (result) {
           if (copiedAnimName === 'Toy Freddy') {
@@ -341,7 +408,7 @@ module.exports = {
           powerEffectText = `🐺 **${animInfo.power.name}**: Copiou o poder de **${copiedAnimName}** (${result.power.name})!\n➜ ${result.effectText}`;
         }
       } else {
-        const result = applyPowerEffect(attacker.animatronic, attackerUser, targetUser, target, attacker, isInvincible);
+        const result = applyPowerEffect(attacker.animatronic, attackerUser, targetUser, target, attacker, isInvincible, baseDamage);
         if (result) {
           if (attacker.animatronic === 'Toy Freddy') {
             baseDamage = baseDamage * 2;
@@ -355,10 +422,15 @@ module.exports = {
 
     // 13. VERIFICAÇÃO DE ESQUIVA DO ALVO (Super Combo do Foxy / Evade)
     let isEvaded = false;
-    const isToyFreddyRage = isPowerActivated && (attacker.animatronic === 'Toy Freddy' || (attacker.animatronic === 'Mangle' && powerEffectText.includes('Toy Freddy')));
+    const isEvadeIgnored = isPowerActivated && (
+      attacker.animatronic === 'Toy Freddy' ||
+      attacker.animatronic === 'Circus Baby' ||
+      powerEffectText.includes('Toy Freddy') ||
+      powerEffectText.includes('Scooper Reach')
+    );
 
     if (!isInvincible && target.evade_next === 1) {
-      if (isToyFreddyRage) {
+      if (isEvadeIgnored) {
         db.updatePlayerEffects(targetUser.id, { evade_next: 0 });
         target = db.getOrCreatePlayer(targetUser.id);
       } else {
@@ -369,12 +441,29 @@ module.exports = {
       }
     }
 
-    if (isInvincible) {
+    if (isInvincible || isBalloraImmune) {
       baseDamage = 0;
     }
 
-    // 14. CÁLCULO FINAL DE DANO E HP DO ALVO
-    const totalDamageDealt = isInvincible ? 0 : (baseDamage + extraPowerDamage);
+    // 14. CÁLCULO FINAL DE DANO E HP DO ALVO OU REFLEXO DA BALLORA
+    let totalDamageDealt = (isInvincible || isBalloraImmune) ? 0 : (baseDamage + extraPowerDamage);
+    let balloraReflectMsg = '';
+
+    if (isBalloraReflect && totalDamageDealt > 0) {
+      const reflectedDmg = Math.round(totalDamageDealt * 2);
+      const newAttackerHpAfterReflect = Math.max(0, currentAttackerHp - reflectedDmg);
+      db.updatePlayerHp(attackerUser.id, newAttackerHpAfterReflect);
+
+      balloraReflectMsg = `\n\n🪞 **DANO REFLETIDO (Spindash Ballet)**: **${targetUser.username}** refletiu 2x o dano de volta! **${attackerUser.username}** sofreu **${reflectedDmg}** de dano! (${newAttackerHpAfterReflect}/${currentAttackerState.max_hp} HP)`;
+
+      if (newAttackerHpAfterReflect === 0) {
+        balloraReflectMsg += `\n💀 **${attackerUser.username}** foi desligado pelo dano refletido da Ballora!\n⚙️ A vida de **${attackerUser.username}** foi reiniciada para 100 HP.`;
+        db.resetPlayerHp(attackerUser.id);
+      }
+
+      totalDamageDealt = 0;
+    }
+
     const newTargetHp = Math.max(0, target.current_hp - totalDamageDealt);
     db.updatePlayerHp(targetUser.id, newTargetHp);
 
@@ -382,7 +471,7 @@ module.exports = {
     const isTargetKo = newTargetHp === 0;
     let koMessage = '';
     if (isTargetKo) {
-      db.incrementPlayerKills(attackerUser.id); // Incrementa o contador de KOs do atacante
+      db.incrementPlayerKills(attackerUser.id);
       koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **${attacker.animatronic}**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
       db.resetPlayerHp(targetUser.id);
     }
@@ -395,7 +484,7 @@ module.exports = {
       .addFields(
         {
           name: `🗡️ Atacante: ${attacker.emoji} ${attacker.animatronic}`,
-          value: `**${attackerUser.username}** usou **${attacker.animatronic}** e causou **${totalDamageDealt}** de dano! *(Margem: ${attacker.min_damage}–${attacker.max_damage})*${statusDamageText}`,
+          value: `**${attackerUser.username}** usou **${attacker.animatronic}** e causou **${totalDamageDealt}** de dano! *(Margem: ${attacker.min_damage}–${attacker.max_damage})*${statusDamageText}${balloraReflectMsg}`,
           inline: false
         }
       );
@@ -404,6 +493,12 @@ module.exports = {
       embed.addFields({
         name: '🌟 Invencibilidade Ativa!',
         value: `**${targetUser.username}** está sob a aura de invencibilidade do Golden Freddy e ignorou todo o dano recebido! (Turnos restantes: **${target.invincible_turns}**)`,
+        inline: false
+      });
+    } else if (isBalloraImmune) {
+      embed.addFields({
+        name: '🩰 Imunidade da Ballora Ativa!',
+        value: `**${targetUser.username}** está imune a dano pela dança da Ballora e ignorou o ataque!`,
         inline: false
       });
     } else if (isEvaded) {
@@ -442,3 +537,4 @@ module.exports = {
     await interaction.reply({ embeds: [embed] });
   }
 };
+

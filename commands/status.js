@@ -31,11 +31,19 @@ module.exports = {
 
     const activeEffects = [];
     if (player.stunned_turns > 0) activeEffects.push(`⚡ **Paralisado/Imobilizado** (${player.stunned_turns} turnos restantes)`);
-    if (player.confused_turns > 0) activeEffects.push(`🌀 **Confuso** (no próximo ataque causará dano próprio)`);
+    if (player.confused_turns > 0) {
+      const multText = (player.confused_multiplier && player.confused_multiplier > 1.0) ? ` [${player.confused_multiplier}x dano próprio]` : '';
+      activeEffects.push(`🌀 **Confuso** (no próximo ataque causará dano próprio${multText})`);
+    }
     if (player.evade_next === 1) activeEffects.push(`💨 **Esquiva Ativa** (ignora próximo dano)`);
     if (player.resist_next_power === 1) activeEffects.push(`🛡️ **Resistência Ativa** (divide por 2 próximo poder especial)`);
     if (player.invincible_turns > 0) activeEffects.push(`🌟 **Invencível** (${player.invincible_turns} turnos restantes)`);
-    if (player.poisoned_turns > 0) activeEffects.push(`🧪 **Envenenado** (8 de dano por turno | ${player.poisoned_turns} rondas restantes)`);
+    if (player.immune_turns > 0) activeEffects.push(`🩰 **Imunidade (Ballora)** (${player.immune_turns} rondas restantes)`);
+    if (player.reflect_turns > 0) activeEffects.push(`🪞 **Reflexo de Dano (Ballora - 2x)** (${player.reflect_turns} rondas restantes)`);
+    if (player.poisoned_turns > 0) {
+      const pDmg = player.poison_damage || 8;
+      activeEffects.push(`🧪 **Envenenado** (${pDmg} de dano por turno | ${player.poisoned_turns} rondas restantes)`);
+    }
     if (player.blinded_turns > 0) activeEffects.push(`🙈 **Cego** (11 de dano próprio ao atacar | ${player.blinded_turns} ataques restantes)`);
 
     const embed = new EmbedBuilder()

@@ -24,11 +24,15 @@ const CREATE_TABLE_SQL = `
     stunned_turns INTEGER NOT NULL DEFAULT 0,
     stun_dot INTEGER NOT NULL DEFAULT 0,
     confused_turns INTEGER NOT NULL DEFAULT 0,
+    confused_multiplier REAL NOT NULL DEFAULT 1.0,
     evade_next INTEGER NOT NULL DEFAULT 0,
     resist_next_power INTEGER NOT NULL DEFAULT 0,
     invincible_turns INTEGER NOT NULL DEFAULT 0,
     poisoned_turns INTEGER NOT NULL DEFAULT 0,
+    poison_damage INTEGER NOT NULL DEFAULT 8,
     blinded_turns INTEGER NOT NULL DEFAULT 0,
+    reflect_turns INTEGER NOT NULL DEFAULT 0,
+    immune_turns INTEGER NOT NULL DEFAULT 0,
     kills INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
@@ -54,20 +58,33 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasPoisoned = false;
     let hasBlinded = false;
     let hasKills = false;
+    let hasReflect = false;
+    let hasImmune = false;
+    let hasConfusedMult = false;
+    let hasPoisonDamage = false;
+
     while (checkStmt.step()) {
       const obj = checkStmt.getAsObject();
       if (obj.name === 'poisoned_turns') hasPoisoned = true;
       if (obj.name === 'blinded_turns') hasBlinded = true;
       if (obj.name === 'kills') hasKills = true;
+      if (obj.name === 'reflect_turns') hasReflect = true;
+      if (obj.name === 'immune_turns') hasImmune = true;
+      if (obj.name === 'confused_multiplier') hasConfusedMult = true;
+      if (obj.name === 'poison_damage') hasPoisonDamage = true;
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
         if (!hasBlinded) rawDb.run("ALTER TABLE players ADD COLUMN blinded_turns INTEGER NOT NULL DEFAULT 0;");
         if (!hasKills) rawDb.run("ALTER TABLE players ADD COLUMN kills INTEGER NOT NULL DEFAULT 0;");
+        if (!hasReflect) rawDb.run("ALTER TABLE players ADD COLUMN reflect_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasImmune) rawDb.run("ALTER TABLE players ADD COLUMN immune_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasConfusedMult) rawDb.run("ALTER TABLE players ADD COLUMN confused_multiplier REAL NOT NULL DEFAULT 1.0;");
+        if (!hasPoisonDamage) rawDb.run("ALTER TABLE players ADD COLUMN poison_damage INTEGER NOT NULL DEFAULT 8;");
       } catch (e) {
         console.error('Erro na migração:', e.message);
       }
@@ -98,8 +115,8 @@ const dbAdapter = {
 
     if (!player) {
       rawDb.run(
-        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, evade_next, resist_next_power, invincible_turns, poisoned_turns, blinded_turns, kills)
-         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
+        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, kills)
+         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0)`,
         [
           userId,
           FIXED_PLAYER_MAX_HP,
@@ -170,15 +187,19 @@ const dbAdapter = {
     const stunned_turns = effects.stunned_turns !== undefined ? effects.stunned_turns : player.stunned_turns;
     const stun_dot = effects.stun_dot !== undefined ? effects.stun_dot : player.stun_dot;
     const confused_turns = effects.confused_turns !== undefined ? effects.confused_turns : player.confused_turns;
+    const confused_multiplier = effects.confused_multiplier !== undefined ? effects.confused_multiplier : (player.confused_multiplier || 1.0);
     const evade_next = effects.evade_next !== undefined ? effects.evade_next : player.evade_next;
     const resist_next_power = effects.resist_next_power !== undefined ? effects.resist_next_power : player.resist_next_power;
     const invincible_turns = effects.invincible_turns !== undefined ? effects.invincible_turns : player.invincible_turns;
     const poisoned_turns = effects.poisoned_turns !== undefined ? effects.poisoned_turns : player.poisoned_turns;
+    const poison_damage = effects.poison_damage !== undefined ? effects.poison_damage : (player.poison_damage || 8);
     const blinded_turns = effects.blinded_turns !== undefined ? effects.blinded_turns : player.blinded_turns;
+    const reflect_turns = effects.reflect_turns !== undefined ? effects.reflect_turns : player.reflect_turns;
+    const immune_turns = effects.immune_turns !== undefined ? effects.immune_turns : player.immune_turns;
 
     rawDb.run(
-      `UPDATE players SET stunned_turns = ?, stun_dot = ?, confused_turns = ?, evade_next = ?, resist_next_power = ?, invincible_turns = ?, poisoned_turns = ?, blinded_turns = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [stunned_turns, stun_dot, confused_turns, evade_next, resist_next_power, invincible_turns, poisoned_turns, blinded_turns, userId]
+      `UPDATE players SET stunned_turns = ?, stun_dot = ?, confused_turns = ?, confused_multiplier = ?, evade_next = ?, resist_next_power = ?, invincible_turns = ?, poisoned_turns = ?, poison_damage = ?, blinded_turns = ?, reflect_turns = ?, immune_turns = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, userId]
     );
     saveDatabase();
     return this.getOrCreatePlayer(userId);
@@ -209,7 +230,7 @@ const dbAdapter = {
   resetPlayerHp(userId) {
     this.getOrCreatePlayer(userId);
     rawDb.run(
-      `UPDATE players SET current_hp = max_hp, stunned_turns = 0, stun_dot = 0, confused_turns = 0, evade_next = 0, resist_next_power = 0, invincible_turns = 0, poisoned_turns = 0, blinded_turns = 0, updated_at = datetime('now') WHERE user_id = ?`,
+      `UPDATE players SET current_hp = max_hp, stunned_turns = 0, stun_dot = 0, confused_turns = 0, confused_multiplier = 1.0, evade_next = 0, resist_next_power = 0, invincible_turns = 0, poisoned_turns = 0, poison_damage = 8, blinded_turns = 0, reflect_turns = 0, immune_turns = 0, updated_at = datetime('now') WHERE user_id = ?`,
       [userId]
     );
     saveDatabase();

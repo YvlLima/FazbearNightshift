@@ -154,6 +154,71 @@ const ANIMATRONICS = [
       chance: 0.08, // 8%
       description: 'Cega o alvo durante os próximos 3 ataques dele (sofrerá 11 de dano por cada ataque tentado), ignorando resistência.'
     }
+  },
+  {
+    name: 'Circus Baby',
+    emoji: '🎪',
+    minDamage: 14,
+    maxDamage: 20,
+    description: 'Líder assustadora que aprisiona oponentes com a sua garra hidráulica.',
+    gif: 'https://media.giphy.com/media/20k1punZ5bpmM/giphy.gif',
+    power: {
+      name: 'Scooper Reach',
+      chance: 0.09, // 9% (Ajustado para balanceamento)
+      description: 'Aprisiona o alvo por 2 rondas (não pode usar /atacar), causando 2.5x o dano principal do ataque e ignorando esquiva e resistência.'
+    }
+  },
+  {
+    name: 'Ballora',
+    emoji: '🩰',
+    minDamage: 12,
+    maxDamage: 18,
+    description: 'Bailarina graciosa com movimentos defensivos letais.',
+    gif: 'https://media.giphy.com/media/l0HlCqV35D6ac1yZq/giphy.gif',
+    power: {
+      name: 'Spindash Ballet',
+      chance: 0.08, // 8% (Ajustado para balanceamento)
+      description: 'Ganha imunidade total a dano por 2 rondas e reflete 2x todo o dano recebido de volta para os atacantes.'
+    }
+  },
+  {
+    name: 'Funtime Chica',
+    emoji: '🦩',
+    minDamage: 13,
+    maxDamage: 19,
+    description: 'Estrela carismática com flashes hipnóticos e desorientadores.',
+    gif: 'https://media.giphy.com/media/3o7TKSx18bYh3a34ic/giphy.gif',
+    power: {
+      name: 'Celebrity Flash',
+      chance: 0.08, // 8%
+      description: 'Sorteia entre hipnotizar o alvo (imobiliza 2 rondas) ou confundi-lo (próximo ataque reflete com 1.5x dano).'
+    }
+  },
+  {
+    name: 'Funtime Freddy',
+    emoji: '🐻‍❄️',
+    minDamage: 15,
+    maxDamage: 21,
+    description: 'Imprevisível e hiperativo que lança o seu marionete Bon-Bon.',
+    gif: 'https://media.giphy.com/media/xT9IgFqJ7z05XnS0yQ/giphy.gif',
+    power: {
+      name: 'Bon-Bon Rocket',
+      chance: 0.11, // 11% (Ajustado para balanceamento)
+      description: 'Copia o poder especial da Funtime Chica ou da Funtime Foxy, somando +6 de dano adicional ao ataque.'
+    }
+  },
+  {
+    name: 'Funtime Foxy',
+    emoji: '🦊',
+    minDamage: 17,
+    maxDamage: 23,
+    description: 'Performer extravagante de ataques hidráulicos e regeneração.',
+    gif: 'https://media.giphy.com/media/3o7TKzbV252W1d9bXy/giphy.gif',
+    power: {
+      name: 'Hydraulic Overload',
+      chance: 0.06, // 6%
+      description: 'Cura 9 HP ao próprio atacante e envenena o alvo por 1 ronda com dano equivalente a 2.5x o dano principal, ignorando resistência.'
+    }
   }
 ];
 

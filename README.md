@@ -36,6 +36,11 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **Toy Chica** | 🐤 | 11 – 16 | 17% | **Heal Food**: Regenera +12 HP ao atacante (máx. 100 HP). |
 | **Toy Bonnie** | 🐰 | 13 – 19 | 9% | **Neon Gas**: Causa 4 dano direto + envenena o alvo por 3 rondas (8 dano/ronda). |
 | **Balloon Boy** | 🎈 | 8 – 14 | 8% | **Flash Balloon**: Cega o alvo por 3 ataques (11 dano próprio em cada tentativa). |
+| **Circus Baby** | 🎪 | 14 – 20 | 9% | **Scooper Reach**: Danos 2.5x + imobilização por 2 rondas (no-evade/no-resist). |
+| **Ballora** | 🩰 | 12 – 18 | 8% | **Spindash Ballet**: Imunidade a dano por 2 rondas + reflete 2x todo o dano recebido. |
+| **Funtime Chica** | 🦩 | 13 – 19 | 8% | **Celebrity Flash**: Sorteia 50/50 entre Hipnotizado (stun 2 rondas) ou Confuso (1.5x dano próprio). |
+| **Funtime Freddy** | 🐻‍❄️ | 15 – 21 | 11% | **Bon-Bon Rocket**: Copia poder de Funtime Chica ou Funtime Foxy + 6 de dano extra. |
+| **Funtime Foxy** | 🦊 | 17 – 23 | 6% | **Hydraulic Overload**: Cura +9 HP + veneno 2.5x no próximo turno (no-resist). |
 | **Golden Freddy** | ✨ | **100** | **1%** | **Lendário / Secreto**: Aparece com 1% de probabilidade e aplica Instakill imediato! |
 
 ---
