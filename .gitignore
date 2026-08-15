@@ -1,0 +1,14 @@
+# Dependências
+node_modules/
+
+# Variáveis de Ambiente
+.env
+
+# Ficheiros de Base de Dados SQLite
+*.db
+fnaf.db
+
+# Logs e Temporários
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

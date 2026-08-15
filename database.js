@@ -1,0 +1,222 @@
+const fs = require('fs');
+const path = require('path');
+const initSqlJs = require('sql.js');
+const { getRandomDifferentAnimatronic, getAnimatronicByName, GOLDEN_FREDDY } = require('./game/fnaf');
+
+const dbPath = path.join(__dirname, 'fnaf.db');
+const FIXED_PLAYER_MAX_HP = 100;
+
+let sqlEngine;
+let rawDb;
+
+/**
+ * Script de criação da tabela de jogadores para o jogo FNAF PvP com poderes, efeitos, invencibilidade, envenenamento, cegueira e contagem de KOs (kills).
+ */
+const CREATE_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS players (
+    user_id TEXT PRIMARY KEY,
+    animatronic TEXT DEFAULT NULL,
+    current_hp INTEGER NOT NULL DEFAULT ${FIXED_PLAYER_MAX_HP},
+    max_hp INTEGER NOT NULL DEFAULT ${FIXED_PLAYER_MAX_HP},
+    min_damage INTEGER NOT NULL DEFAULT 0,
+    max_damage INTEGER NOT NULL DEFAULT 0,
+    last_attack INTEGER NOT NULL DEFAULT 0,
+    stunned_turns INTEGER NOT NULL DEFAULT 0,
+    stun_dot INTEGER NOT NULL DEFAULT 0,
+    confused_turns INTEGER NOT NULL DEFAULT 0,
+    evade_next INTEGER NOT NULL DEFAULT 0,
+    resist_next_power INTEGER NOT NULL DEFAULT 0,
+    invincible_turns INTEGER NOT NULL DEFAULT 0,
+    poisoned_turns INTEGER NOT NULL DEFAULT 0,
+    blinded_turns INTEGER NOT NULL DEFAULT 0,
+    kills INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+`;
+
+const saveDatabase = () => {
+  if (rawDb) {
+    const data = rawDb.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(dbPath, buffer);
+  }
+};
+
+const filebuffer = fs.existsSync(dbPath) ? fs.readFileSync(dbPath) : null;
+
+let dbReadyPromise = initSqlJs().then(SQL => {
+  sqlEngine = SQL;
+  rawDb = new SQL.Database(filebuffer);
+
+  try {
+    const checkStmt = rawDb.prepare("PRAGMA table_info(players);");
+    let hasPoisoned = false;
+    let hasBlinded = false;
+    let hasKills = false;
+    while (checkStmt.step()) {
+      const obj = checkStmt.getAsObject();
+      if (obj.name === 'poisoned_turns') hasPoisoned = true;
+      if (obj.name === 'blinded_turns') hasBlinded = true;
+      if (obj.name === 'kills') hasKills = true;
+    }
+    checkStmt.free();
+
+    if (!hasPoisoned || !hasBlinded || !hasKills) {
+      console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
+      try {
+        if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasBlinded) rawDb.run("ALTER TABLE players ADD COLUMN blinded_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasKills) rawDb.run("ALTER TABLE players ADD COLUMN kills INTEGER NOT NULL DEFAULT 0;");
+      } catch (e) {
+        console.error('Erro na migração:', e.message);
+      }
+    }
+  } catch (err) {
+    // Tabela não existia
+  }
+
+  rawDb.run(CREATE_TABLE_SQL);
+  saveDatabase();
+});
+
+const dbAdapter = {
+  type: 'sql.js',
+  async init() {
+    await dbReadyPromise;
+  },
+
+  getOrCreatePlayer(userId) {
+    const stmt = rawDb.prepare('SELECT * FROM players WHERE user_id = :userId');
+    stmt.bind({ ':userId': userId });
+
+    let player = null;
+    if (stmt.step()) {
+      player = stmt.getAsObject();
+    }
+    stmt.free();
+
+    if (!player) {
+      rawDb.run(
+        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, evade_next, resist_next_power, invincible_turns, poisoned_turns, blinded_turns, kills)
+         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
+        [
+          userId,
+          FIXED_PLAYER_MAX_HP,
+          FIXED_PLAYER_MAX_HP
+        ]
+      );
+      saveDatabase();
+      return this.getOrCreatePlayer(userId);
+    }
+
+    if (player.animatronic) {
+      const animData = getAnimatronicByName(player.animatronic);
+      player.emoji = animData ? animData.emoji : '🤖';
+    } else {
+      player.emoji = '';
+    }
+
+    return player;
+  },
+
+  assignGoldenFreddy(userId) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET animatronic = 'Golden Freddy', min_damage = 100, max_damage = 100, updated_at = datetime('now') WHERE user_id = ?`,
+      [userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  assignNewDifferentAnimatronic(userId) {
+    const currentPlayer = this.getOrCreatePlayer(userId);
+    const currentName = currentPlayer ? currentPlayer.animatronic : null;
+    const newAnim = getRandomDifferentAnimatronic(currentName);
+
+    rawDb.run(
+      `UPDATE players SET animatronic = ?, min_damage = ?, max_damage = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [newAnim.name, newAnim.minDamage, newAnim.maxDamage, userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  updatePlayerHp(userId, newHp) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET current_hp = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [newHp, userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  setLastAttack(userId, timestamp) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET last_attack = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [timestamp, userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  updatePlayerEffects(userId, effects = {}) {
+    this.getOrCreatePlayer(userId);
+    const player = this.getOrCreatePlayer(userId);
+
+    const stunned_turns = effects.stunned_turns !== undefined ? effects.stunned_turns : player.stunned_turns;
+    const stun_dot = effects.stun_dot !== undefined ? effects.stun_dot : player.stun_dot;
+    const confused_turns = effects.confused_turns !== undefined ? effects.confused_turns : player.confused_turns;
+    const evade_next = effects.evade_next !== undefined ? effects.evade_next : player.evade_next;
+    const resist_next_power = effects.resist_next_power !== undefined ? effects.resist_next_power : player.resist_next_power;
+    const invincible_turns = effects.invincible_turns !== undefined ? effects.invincible_turns : player.invincible_turns;
+    const poisoned_turns = effects.poisoned_turns !== undefined ? effects.poisoned_turns : player.poisoned_turns;
+    const blinded_turns = effects.blinded_turns !== undefined ? effects.blinded_turns : player.blinded_turns;
+
+    rawDb.run(
+      `UPDATE players SET stunned_turns = ?, stun_dot = ?, confused_turns = ?, evade_next = ?, resist_next_power = ?, invincible_turns = ?, poisoned_turns = ?, blinded_turns = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [stunned_turns, stun_dot, confused_turns, evade_next, resist_next_power, invincible_turns, poisoned_turns, blinded_turns, userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  incrementPlayerKills(userId) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET kills = kills + 1, updated_at = datetime('now') WHERE user_id = ?`,
+      [userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  getTopKillsLeaderboard(limit = 10) {
+    const stmt = rawDb.prepare('SELECT user_id, kills FROM players WHERE kills > 0 ORDER BY kills DESC LIMIT :limit');
+    stmt.bind({ ':limit': limit });
+
+    const list = [];
+    while (stmt.step()) {
+      list.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return list;
+  },
+
+  resetPlayerHp(userId) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET current_hp = max_hp, stunned_turns = 0, stun_dot = 0, confused_turns = 0, evade_next = 0, resist_next_power = 0, invincible_turns = 0, poisoned_turns = 0, blinded_turns = 0, updated_at = datetime('now') WHERE user_id = ?`,
+      [userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  }
+};
+
+console.log('✅ Base de dados SQLite (FNAF) iniciada com sucesso usando [sql.js WebAssembly]!');
+
+module.exports = dbAdapter;

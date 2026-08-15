@@ -1,0 +1,27 @@
+{
+  "name": "fazbear-nightshift",
+  "version": "1.0.0",
+  "description": "Fazbear Nightshift — Bot de Discord de duelos PvP temáticos de Five Nights at Freddy's (FNAF) em Node.js com discord.js v14 e SQLite",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "keywords": [
+    "fazbear-nightshift",
+    "discord",
+    "bot",
+    "fnaf",
+    "pvp",
+    "animatronics",
+    "sqlite",
+    "discordjs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7",
+    "sql.js": "^1.12.0"
+  }
+}
