@@ -96,7 +96,7 @@ const ANIMATRONICS = [
     minDamage: 14,
     maxDamage: 20,
     description: 'Gamer obsessivo que calcula ataques de alta precisão.',
-    gif: 'https://media.giphy.com/media/22TinJW3r35ds7BqSo/giphy.gif',
+    gif: 'https://media.giphy.com/media/d0O0yEvQlyHt1W2Wrd/giphy.gif',
     power: {
       name: 'AI Rage',
       chance: 0.10, // 10%

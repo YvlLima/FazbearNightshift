@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../database');
 const config = require('../config');
-const { rollDamage, getAnimatronicByName, resolveDirectGifUrl } = require('../game/fnaf');
+const { rollDamage, getAnimatronicByName, resolveDirectGifUrl, FUNTIME_NAMES } = require('../game/fnaf');
 
 /**
  * Função utilitária reutilizável para aplicar o efeito de um poder especial a um atacante e alvo.
