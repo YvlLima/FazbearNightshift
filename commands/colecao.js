@@ -46,7 +46,7 @@ module.exports = {
     const isGoldenSeen = seenList.includes('Golden Freddy');
     const isEnnardSeen = seenList.includes('Ennard');
     let scottStatusText = '🔒 ~~Scott Cawthon~~';
-    if (isScottUnlocked) {
+    if (scottUnlocked) {
       scottStatusText = '✅ 👨‍💻 **Scott Cawthon**';
     } else if (!isGoldenSeen) {
       scottStatusText = '🔒 ~~Scott Cawthon~~ *(Falta encontrar Golden Freddy)*';
