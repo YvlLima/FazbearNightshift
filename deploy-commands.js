@@ -31,25 +31,25 @@ const rest = new REST({ version: '10' }).setToken(config.token);
 
 (async () => {
   try {
-    console.log(`🚀 A registar ${commands.length} comandos no Discord...`);
+    console.log(`🚀 A preparar registo global de ${commands.length} comandos no Discord...`);
 
-    // 1. Limpar comandos globais antigos para evitar duplicação no menu
-    await rest.put(
-      Routes.applicationCommands(config.clientId),
-      { body: [] }
-    );
-    console.log('🧹 Comandos globais anteriores removidos para evitar duplicação.');
-
-    // 2. Regista os comandos exclusivamente no servidor específico (para atualização imediata)
-    if (config.guildId) {
-      const guildData = await rest.put(
+    // 1. Limpar comandos específicos de Guild antigos para evitar duplicação no menu
+    if (config.guildId && config.guildId !== 'seu_guild_id_aqui') {
+      await rest.put(
         Routes.applicationGuildCommands(config.clientId, config.guildId),
-        { body: commands }
+        { body: [] }
       );
-      console.log(`✅ ${guildData.length} comandos registados no servidor específico [${config.guildId}]!`);
-    } else {
-      console.error('❌ ERRO: GUILD_ID não está configurado no .env!');
+      console.log(`🧹 Comandos específicos do servidor [${config.guildId}] removidos com sucesso.`);
     }
+
+    // 2. Registar comandos GLOBALMENTE
+    const globalData = await rest.put(
+      Routes.applicationCommands(config.clientId),
+      { body: commands }
+    );
+
+    console.log(`🌐 ${globalData.length} comandos registados GLOBALMENTE com sucesso!`);
+    console.log('ℹ️ Nota: O registo global pode demorar até 1 hora a propagar para todos os servidores do Discord.');
 
   } catch (error) {
     console.error('❌ Erro ao registar comandos slash:', error);
