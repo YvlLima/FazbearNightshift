@@ -49,7 +49,7 @@ module.exports = {
     if (scottUnlocked) {
       scottStatusText = '✅ 👨‍💻 **Scott Cawthon**';
     } else if (!isGoldenSeen) {
-      scottStatusText = '🔒 ~~Scott Cawthon~~ **';
+      scottStatusText = '🔒 ~~Scott Cawthon~~ *(Falta encontrar Golden Freddy)*';
     }
 
     const secretosText = [

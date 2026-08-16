@@ -16,9 +16,18 @@ module.exports = {
   async autocomplete(interaction) {
     const focusedValue = interaction.options.getFocused().toLowerCase();
     const allAnimatronics = getAllAnimatronics();
-    const filtered = allAnimatronics.filter(a =>
+    let filtered = allAnimatronics.filter(a =>
       a.name.toLowerCase().includes(focusedValue)
     );
+    // Se a pesquisa estiver vazia, colocar os secretos (Scott, Golden Freddy, Ennard) no topo para estarem sempre visíveis nas 25 opções do Discord
+    if (!focusedValue) {
+      const secrets = ['Scott Cawthon', 'Golden Freddy', 'Ennard'];
+      filtered.sort((a, b) => {
+        const aSecret = secrets.includes(a.name) ? -1 : 1;
+        const bSecret = secrets.includes(b.name) ? -1 : 1;
+        return aSecret - bSecret;
+      });
+    }
     await interaction.respond(
       filtered.slice(0, 25).map(a => ({ name: `${a.emoji} ${a.name}`, value: a.name }))
     );

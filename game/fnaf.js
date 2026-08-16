@@ -410,7 +410,7 @@ function getAnimatronicByName(name) {
  * @returns {number} Valor de dano sorteado
  */
 function rollDamage(animatronic) {
-  if (animatronic.name === 'Golden Freddy') return 100;
+  if (animatronic.name === 'Golden Freddy') return 75;
   const min = animatronic.minDamage;
   const max = animatronic.maxDamage;
   return Math.floor(Math.random() * (max - min + 1)) + min;
