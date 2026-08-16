@@ -8,18 +8,24 @@ const { getAnimatronicByName, resolveDirectGifUrl } = require('../game/fnaf');
  * @param {boolean} isDisabled - Se verdadeiro, os botões são exibidos desativados.
  * @returns {ActionRowBuilder}
  */
-function createDuelActionRow(isDisabled = false) {
+/**
+ * Cria a barra de botões interativos para o embed de duelo.
+ * @param {boolean} isRematchDisabled - Se verdadeiro, o botão de Revanche fica desativado.
+ * @param {boolean} isProfileDisabled - Se verdadeiro, o botão de Ver Perfil fica desativado.
+ * @returns {ActionRowBuilder}
+ */
+function createDuelActionRow(isRematchDisabled = false, isProfileDisabled = false) {
   const rematchBtn = new ButtonBuilder()
     .setCustomId('rematch')
     .setLabel('⚔️ Revanche')
     .setStyle(ButtonStyle.Primary)
-    .setDisabled(isDisabled);
+    .setDisabled(isRematchDisabled);
 
   const profileBtn = new ButtonBuilder()
     .setCustomId('view_profile')
     .setLabel('📊 Ver Perfil')
     .setStyle(ButtonStyle.Secondary)
-    .setDisabled(isDisabled);
+    .setDisabled(isProfileDisabled);
 
   return new ActionRowBuilder().addComponents(rematchBtn, profileBtn);
 }
@@ -46,7 +52,8 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       .setColor(0xf1c40f)
       .setTimestamp();
 
-    return interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
+    return false;
   }
 
   // 2. Caso de Invocação do Scott Cawthon
@@ -91,10 +98,10 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       if (directGifUrl) scottEmbed.setImage(directGifUrl);
     }
 
-    const row = createDuelActionRow(false);
+    const row = createDuelActionRow(false, false);
     const response = await interaction.reply({ embeds: [scottEmbed], components: [row], fetchReply: true });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
-    return;
+    return true;
   }
 
   // 3. Caso de Atacante Paralisado
@@ -108,7 +115,8 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       .setFooter({ text: 'Cooldown de 1 minuto aplicado ao atacante.' })
       .setTimestamp();
 
-    return interaction.reply({ embeds: [stunEmbed] });
+    await interaction.reply({ embeds: [stunEmbed] });
+    return true;
   }
 
   // 4. Caso de Atacante Desligado por Efeito de Status (Veneno/Cegueira)
@@ -122,7 +130,8 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       .setFooter({ text: 'Cooldown de 1 minuto aplicado ao atacante.' })
       .setTimestamp();
 
-    return interaction.reply({ embeds: [statusKoEmbed] });
+    await interaction.reply({ embeds: [statusKoEmbed] });
+    return true;
   }
 
   // 5. Caso de Ataque Confuso (Dano Próprio)
@@ -148,10 +157,10 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       if (directGifUrl) confusedEmbed.setImage(directGifUrl);
     }
 
-    const row = createDuelActionRow(false);
+    const row = createDuelActionRow(false, false);
     const response = await interaction.reply({ embeds: [confusedEmbed], components: [row], fetchReply: true });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
-    return;
+    return true;
   }
 
   // 6. Caso do Golden Freddy
@@ -202,10 +211,10 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       if (directGifUrl) goldenEmbed.setImage(directGifUrl);
     }
 
-    const row = createDuelActionRow(false);
+    const row = createDuelActionRow(false, false);
     const response = await interaction.reply({ embeds: [goldenEmbed], components: [row], fetchReply: true });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
-    return;
+    return true;
   }
 
   // 7. Duelo Padrão / Regular
@@ -285,10 +294,13 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       embed.setDescription(result.lifeSaverMsg);
     }
 
-    const row = createDuelActionRow(false);
+    const row = createDuelActionRow(false, false);
     const response = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
+    return true;
   }
+
+  return false;
 }
 
 /**
@@ -335,24 +347,40 @@ function attachButtonCollector(responseMessage, parentInteraction, attackerUser,
 
     // 2. Botão Revanche
     if (btnInteraction.customId === 'rematch') {
-      if (btnInteraction.user.id !== attackerUser.id) {
+      // O botão "Revanche" só pode ser usado pelo jogador que foi ATACADO (o defensor targetUser)
+      if (btnInteraction.user.id !== targetUser.id) {
         return btnInteraction.reply({
-          content: '❌ Apenas quem iniciou o duelo pode pedir revanche!',
+          content: '❌ Só quem sofreu o ataque pode pedir revanche!',
           ephemeral: true
         });
       }
 
-      await processDuel({
+      // No duelo de revanche:
+      // O novo atacante é quem pediu a revanche (defensor original: targetUser)
+      // O novo alvo é o agressor original (attackerUser)
+      const isExecuted = await processDuel({
         interaction: btnInteraction,
-        attackerUser,
-        targetUser
+        attackerUser: targetUser,
+        targetUser: attackerUser
       });
+
+      // Se a revanche foi executada com sucesso (não barrada por cooldown), desativa apenas o botão de revanche no embed original
+      if (isExecuted) {
+        try {
+          const disabledRow = createDuelActionRow(true, false);
+          if (typeof parentInteraction.editReply === 'function') {
+            await parentInteraction.editReply({ components: [disabledRow] });
+          }
+        } catch (err) {
+          // Ignorar se a mensagem original tiver sido removida
+        }
+      }
     }
   });
 
   collector.on('end', async () => {
     try {
-      const disabledRow = createDuelActionRow(true);
+      const disabledRow = createDuelActionRow(true, true);
       if (typeof parentInteraction.editReply === 'function') {
         await parentInteraction.editReply({ components: [disabledRow] });
       }

@@ -207,7 +207,7 @@ const ANIMATRONICS = [
     minDamage: 15,
     maxDamage: 21,
     description: 'Apresentador exuberante com o seu fantoche leal Bon-Bon.',
-    gif: 'https://media.giphy.com/media/9d63c5mH2jY9wWzE4Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/kdBDSfLNaVNUBN5ZjW/giphy.gif',
     power: {
       name: 'Bon-Bon Rocket',
       chance: 0.11, // 11%
@@ -220,7 +220,7 @@ const ANIMATRONICS = [
     minDamage: 17,
     maxDamage: 23,
     description: 'Ator dramático com sobrecarga hidráulica devastadora.',
-    gif: 'https://media.giphy.com/media/1d5RfZgmtYtA5JzE7a/giphy.gif',
+    gif: 'https://media.giphy.com/media/KpRuNSxFCr2Zld0ktG/giphy.gif',
     power: {
       name: 'Hydraulic Overload',
       chance: 0.06, // 6%
