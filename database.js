@@ -206,7 +206,7 @@ const dbAdapter = {
   assignGoldenFreddy(userId) {
     this.getOrCreatePlayer(userId);
     rawDb.run(
-      `UPDATE players SET animatronic = 'Golden Freddy', min_damage = 100, max_damage = 100, updated_at = datetime('now') WHERE user_id = ?`,
+      `UPDATE players SET animatronic = 'Golden Freddy', min_damage = 75, max_damage = 75, updated_at = datetime('now') WHERE user_id = ?`,
       [userId]
     );
     saveDatabase();

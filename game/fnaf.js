@@ -2,18 +2,18 @@
  * Módulo com a definição do roster de Animatronics e lógica do jogo FNAF PvP.
  */
 
-// Objeto especial para o Golden Freddy (Animatronic Secreto com 2% de chance)
+// Objeto especial para o Golden Freddy (Animatronic Secreto com 3% de chance)
 const GOLDEN_FREDDY = {
   name: 'Golden Freddy',
   emoji: '✨',
-  minDamage: 100,
-  maxDamage: 100,
-  description: 'Lendário e extremamente raro. Garante vitória instantânea sempre que aparece.',
+  minDamage: 75,
+  maxDamage: 75,
+  description: 'Lendário e extremamente raro. Inflige 75 de dano fixo ignorando qualquer defesa e concede invencibilidade ao atacante.',
   gif: 'https://media.giphy.com/media/VsvjvEa5FF3lTcjdov/giphy.gif',
   power: {
     name: 'Golden Jumpscare',
-    chance: 0.02, // 2%
-    description: 'Aparece com 2% de probabilidade: aplica Instakill imediato ao alvo (100 de dano) e concede ao próprio atacante 2 turnos de invencibilidade total.'
+    chance: 0.03, // 3%
+    description: 'Aparece com 3% de probabilidade: causa 75 de dano fixo ao alvo, ignorando qualquer defesa, e concede ao atacante 2 turnos de invencibilidade total.'
   }
 };
 

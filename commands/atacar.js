@@ -552,8 +552,8 @@ module.exports = {
       // Sortear aleatoriamente 1 dos 5 Funtimes para herdar o poder com 100% de certeza
       forcedEnnardPowerName = FUNTIME_NAMES[Math.floor(Math.random() * FUNTIME_NAMES.length)];
     } else {
-      // Sorteio regular: 2% de chance secreta para GOLDEN FREDDY ou animatronic normal
-      isGoldenFreddyDrawn = Math.random() < 0.02;
+      // Sorteio regular: 3% de chance secreta para GOLDEN FREDDY ou animatronic normal
+      isGoldenFreddyDrawn = Math.random() < 0.03;
 
       if (isGoldenFreddyDrawn) {
         attacker = db.assignGoldenFreddy(attackerUser.id);
@@ -579,27 +579,46 @@ module.exports = {
     // 9. Obter dados atualizados do alvo
     let target = db.getOrCreatePlayer(targetUser.id);
 
-    // 10. EXECUÇÃO ESPECIAL DO GOLDEN FREDDY (ONE-HIT-KILL + INVENCIBILIDADE AO ATACANTE)
+    // 10. EXECUÇÃO ESPECIAL DO GOLDEN FREDDY (75 DANO FIXO IGNORANDO DEFESAS + 2 TURNOS INVENCIBILIDADE)
     if (isGoldenFreddyDrawn) {
-      db.updatePlayerHp(targetUser.id, 0);
+      const gfDamage = 75;
+      const newTargetHp = Math.max(0, target.current_hp - gfDamage);
+      db.updatePlayerHp(targetUser.id, newTargetHp);
       db.updatePlayerEffects(attackerUser.id, { invincible_turns: 2 });
-      db.incrementWins(attackerUser.id);
-      db.incrementPlayerKills(attackerUser.id);
-      db.recordDuel({
-        attackerId: attackerUser.id,
-        targetId: targetUser.id,
-        animatronic: 'Golden Freddy',
-        damage: 100,
-        wasKo: 1,
-        timestamp: now
-      });
 
-      const koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **Golden Freddy**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
-      db.resetPlayerHp(targetUser.id);
+      const isKo = newTargetHp === 0;
+      let koMessage = '';
+
+      if (isKo) {
+        db.incrementWins(attackerUser.id);
+        db.incrementPlayerKills(attackerUser.id);
+        db.recordDuel({
+          attackerId: attackerUser.id,
+          targetId: targetUser.id,
+          animatronic: 'Golden Freddy',
+          damage: gfDamage,
+          wasKo: 1,
+          timestamp: now
+        });
+
+        koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **Golden Freddy**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
+        db.resetPlayerHp(targetUser.id);
+      } else {
+        db.recordDuel({
+          attackerId: attackerUser.id,
+          targetId: targetUser.id,
+          animatronic: 'Golden Freddy',
+          damage: gfDamage,
+          wasKo: 0,
+          timestamp: now
+        });
+      }
 
       if (hasReducedCooldown) {
         db.decrementReducedCooldown(attackerUser.id);
       }
+
+      const defenderHpText = isKo ? '0/100 HP *(Desligado)*' : `${newTargetHp}/100 HP`;
 
       const goldenEmbed = new EmbedBuilder()
         .setTitle('✨ GOLDEN FREDDY APARECEU! ✨')
@@ -612,17 +631,21 @@ module.exports = {
             inline: false
           },
           {
-            name: `💀 Efeito Lendário: One-Hit-Kill Instantâneo!`,
-            value: `Reduziu a vida de **${targetUser.username}** diretamente a **0 HP**, ignorando qualquer forma de defesa ou resistência!\n🌟 **${attackerUser.username}** ganhou **2 turnos de invencibilidade total**!`,
+            name: `💥 Poder Lendário: Golden Jumpscare!`,
+            value: `Causou **75 de dano fixo** a **${targetUser.username}**, ignorando qualquer forma de defesa ou resistência!\n🌟 **${attackerUser.username}** ganhou **2 turnos de Invencibilidade Total**!`,
             inline: false
           },
           {
             name: `🛡️ Defensor: 👤 ${targetUser.username}`,
-            value: `Ficou com **0/100 HP** *(Desligado)*`,
+            value: `Ficou com **${defenderHpText}**`,
             inline: false
           }
         )
-        .setDescription(koMessage)
+      if (koMessage) {
+        goldenEmbed.setDescription(koMessage);
+      }
+
+      goldenEmbed
         .setFooter({ text: hasReducedCooldown ? 'Cooldown reduzido de 30s aplicado ao atacante.' : 'Cooldown de 1 minuto aplicado ao atacante.' })
         .setTimestamp();
 
