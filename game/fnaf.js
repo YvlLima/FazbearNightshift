@@ -146,7 +146,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Neon Gas',
       chance: 0.09, // 9%
-      description: 'Causa +4 de dano direto ao alvo (reduzido para +2 por Resistência) e envenena-o por 3 rondas (8 de dano por turno, 24 de dano contínuo total).'
+      description: 'Causa +4 de dano direto ao alvo (reduzido para +2 por Resistência) e envenena-o por 3 rondas (5 de dano por turno, 15 de dano contínuo total).'
     }
   },
   {
@@ -159,7 +159,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Flash Balloon',
       chance: 0.08, // 8%
-      description: 'Cega o alvo por 2 ataques — em cada tentativa de ataque realizada pelo alvo durante esse período, ele sofre 14 de dano próprio, ignorando resistência.'
+      description: 'Cega o alvo por 2 ataques — em cada tentativa de ataque realizada pelo alvo durante esse período, ele sofre 17 de dano próprio, ignorando resistência.'
     }
   },
   {
@@ -185,7 +185,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Spindash Ballet',
       chance: 0.08, // 8%
-      description: 'O próprio atacante fica imune a dano e reflete 1.5x qualquer dano que sofrer durante os próximos 2 ataques que receber como alvo.'
+      description: 'O próprio atacante fica imune a dano e reflete 1.5x qualquer dano que sofrer durante o próximo 1 ataque que receber como alvo.'
     }
   },
   {
@@ -198,7 +198,7 @@ const ANIMATRONICS = [
     power: {
       name: 'Celebrity Flash',
       chance: 0.08, // 8%
-      description: 'Sorteia 50/50 entre Hipnotizar o alvo (imobilizado por 2 rondas) ou Confundi-lo (causa 1.5x de dano próprio no próximo ataque).'
+      description: 'Sorteia 50/50 entre imobilizar o alvo por 2 rondas ou confundi-lo com 1.5x de dano próprio no próximo ataque.'
     }
   },
   {
@@ -206,12 +206,12 @@ const ANIMATRONICS = [
     emoji: '🐻‍❄️',
     minDamage: 15,
     maxDamage: 21,
-    description: 'Imprevisível e hiperativo que lança o seu marionete Bon-Bon.',
-    gif: 'https://media.giphy.com/media/kdBDSfLNaVNUBN5ZjW/giphy.gif',
+    description: 'Apresentador exuberante com o seu fantoche leal Bon-Bon.',
+    gif: 'https://media.giphy.com/media/9d63c5mH2jY9wWzE4Z/giphy.gif',
     power: {
       name: 'Bon-Bon Rocket',
       chance: 0.11, // 11%
-      description: 'Copia o poder especial de Funtime Chica ou Funtime Foxy e adiciona +6 de dano fixo extra ao ataque (reduzido para +3 com Resistência).'
+      description: 'Lança o Bon-Bon, copiando o poder especial de Funtime Chica ou Funtime Foxy e adicionando +6 de dano extra ao ataque.'
     }
   },
   {
@@ -219,12 +219,12 @@ const ANIMATRONICS = [
     emoji: '🦊',
     minDamage: 17,
     maxDamage: 23,
-    description: 'Performer extravagante de ataques hidráulicos e regeneração.',
-    gif: 'https://media.giphy.com/media/KpRuNSxFCr2Zld0ktG/giphy.gif',
+    description: 'Ator dramático com sobrecarga hidráulica devastadora.',
+    gif: 'https://media.giphy.com/media/1d5RfZgmtYtA5JzE7a/giphy.gif',
     power: {
       name: 'Hydraulic Overload',
       chance: 0.06, // 6%
-      description: 'Regenera +9 HP ao próprio atacante e envenena o alvo por 1 ronda com dano contínuo equivalente a 2.5x o dano principal, ignorando resistência.'
+      description: 'Curar +9 HP ao atacante e envenena o alvo por 1 ronda com 2.5x do dano principal em envenenamento hidráulico (no-resist).'
     }
   },
   {
@@ -232,12 +232,12 @@ const ANIMATRONICS = [
     emoji: '🎤',
     minDamage: 14,
     maxDamage: 20,
-    description: 'Líder dos Glamrocks com a escotilha torácica protetora.',
-    gif: 'https://media.giphy.com/media/Yztj5QCINQerTUlNF1/giphy.gif',
+    description: 'Protetor robusto dos guardas noturnos com escotilha torácica protetora.',
+    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
     power: {
       name: 'Stomach Hatch Protect',
       chance: 0.09, // 9%
-      description: 'Engole o próximo ataque recebido pelo atacante (0 dano sofrido) e devolve-o duplicado (2x) como dano ao agressor (reduzido para metade se o agressor tiver Resistência).'
+      description: 'Engole o próximo ataque recebido e devolve-o duplicado (2x) como dano de contra-ataque ao agressor.'
     }
   },
   {
@@ -245,12 +245,12 @@ const ANIMATRONICS = [
     emoji: '🎸',
     minDamage: 11,
     maxDamage: 17,
-    description: 'Guitarrista voraz que resiste aos danos mais críticos.',
-    gif: 'https://media.giphy.com/media/8dokXZ8JnJRHVVYnfE/giphy.gif',
+    description: 'Devoradora de lixo e sobrevivente insaciável.',
+    gif: 'https://media.giphy.com/media/7EsrkwGqL82GONjDOR/giphy.gif',
     power: {
       name: 'Garbage Gobble',
       chance: 0.11, // 11%
-      description: 'Se o HP do atacante estiver abaixo de 20%, ativa modo de sobrevivência por 2 ataques: impede a morte (HP mínimo 1) e duplica (2x) o dano dos seus próprios ataques nesse período.'
+      description: 'Se o atacante estiver com vida crítica (<20% HP), não pode morrer (HP mín 1) e causa 2x de dano pelos próximos 2 ataques.'
     }
   },
   {
@@ -258,12 +258,12 @@ const ANIMATRONICS = [
     emoji: '🏎️',
     minDamage: 15,
     maxDamage: 21,
-    description: 'Pilota narcisista com visão de raios-X e deteção de falhas.',
-    gif: 'https://media.giphy.com/media/r6vcGAWmg2S7Dpc4YJ/giphy.gif',
+    description: 'Competidora confiante com visão aperfeiçoada de raios-X.',
+    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
     power: {
       name: "Roxy's Eyes",
       chance: 0.08, // 8%
-      description: 'Anula todos os efeitos negativos ativos no próprio atacante e confunde o alvo por 1 ataque com +9 de dano auto-infligido adicional.'
+      description: 'Limpa todos os efeitos negativos do atacante e confunde o alvo (+9 de auto-dano no próximo ataque).'
     }
   },
   {
@@ -271,12 +271,12 @@ const ANIMATRONICS = [
     emoji: '🐊',
     minDamage: 16,
     maxDamage: 22,
-    description: 'Baixista agressivo com investidas violentas e saltos devastadores.',
-    gif: 'https://media.giphy.com/media/F2Xih8X6VCCTifqlSo/giphy.gif',
+    description: 'Baixista agressivo com fúria incontrolável de crocodilo.',
+    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
     power: {
       name: 'Monty Thrash',
       chance: 0.12, // 12%
-      description: 'Causa +10 de dano fixo adicional ao alvo (reduzido para +5 com Resistência) e concede esquiva total ao próprio atacante no próximo ataque recebido.'
+      description: 'Causa +10 de dano fixo adicional ao ataque (fúria 30%) e ativa esquiva para o próprio atacante no próximo turno.'
     }
   },
   {
@@ -284,12 +284,12 @@ const ANIMATRONICS = [
     emoji: '☀️',
     minDamage: 13,
     maxDamage: 19,
-    description: 'Animatronic de personalidade dupla que alterna entre luz e trevas.',
-    gif: 'https://media.giphy.com/media/ZsyeN9Qljuvzo6IDj4/giphy.gif',
+    description: 'Monitor da creche com dupla personalidade solar e lunar.',
+    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
     power: {
       name: 'Day/Night Shift',
       chance: 0.06, // 6%
-      description: 'Sorteia 50/50 entre Modo Sun (cura +15 HP ao próprio atacante) ou Modo Moon (cega o alvo por 2 turnos e aumenta o dano deste ataque em 2.5x).'
+      description: 'Sorteia 50/50 entre Modo Sun (+15 HP de cura ao atacante) ou Modo Moon (cega por 2 rondas + 2.5x dano ao alvo).'
     }
   },
   {
@@ -297,12 +297,12 @@ const ANIMATRONICS = [
     emoji: '🔪',
     minDamage: 12,
     maxDamage: 18,
-    description: 'Seguidora mascarada que corrompe o sistema de combate.',
-    gif: 'https://media.giphy.com/media/YoXdoyeLiMp3IesV65/giphy.gif',
+    description: 'Seguidora mascarada que manipula e hackeia o sistema do jogo.',
+    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
     power: {
       name: 'Glitch Override',
       chance: 0.12, // 12%
-      description: 'Aplica o estado Hackeado ao alvo por 2 ataques — em cada ataque que realizar nesse período, o alvo sofre 50% de auto-dano sobre o dano que causar.'
+      description: 'Hackeia o alvo por 2 ataques — qualquer ataque realizado pelo alvo causará 50% de auto-dano extra a ele próprio.'
     }
   },
   {
@@ -310,12 +310,12 @@ const ANIMATRONICS = [
     emoji: '🎁',
     minDamage: 10,
     maxDamage: 16,
-    description: 'Guardião de emergência que restaura sistemas críticos.',
-    gif: 'https://media.giphy.com/media/xfP3NKiqib8xOBYUBx/giphy.gif',
+    description: 'Marionete de segurança protetora que cura e retarda ações.',
+    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
     power: {
       name: 'Security Healing',
       chance: 0.13, // 13%
-      description: 'Regenera +40 HP ao próprio atacante (até ao máximo de 100 HP), mas impõe-lhe cooldown duplo (2 minutos de espera) no seu próximo ataque.'
+      description: 'Restaura +40 HP ao atacante (até 100 HP) e impõe cooldown duplo (2 min) no próximo ataque do atacante.'
     }
   },
   {
@@ -323,12 +323,12 @@ const ANIMATRONICS = [
     emoji: '🤖',
     minDamage: 15,
     maxDamage: 23,
-    description: 'Endosqueleto antigo capaz de replicar qualquer padrão de combate.',
-    gif: 'https://media.giphy.com/media/2366jOUMQShVQ3ZaNF/giphy.gif',
+    description: 'Entidade de inteligência artificial que aprende e replica comportamentos.',
+    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
     power: {
       name: 'Data Copy',
       chance: 0.03, // 3%
-      description: 'Copia o poder especial de qualquer animatronic do roster (exceto Golden Freddy e Ennard) e duplica (2x) todos os seus valores numéricos de dano.'
+      description: 'Copia o poder especial de qualquer animatronic do roster (exceto Golden Freddy, Ennard, The Mimic e Scott Cawthon) e duplica (2x) todos os seus valores numéricos de dano.'
     }
   },
   {

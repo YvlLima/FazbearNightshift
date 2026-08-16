@@ -34,10 +34,10 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **Toy Freddy** | 🧸 | 14 – 20 | 10% | **AI Rage**: Dobra o dano (2x) e ignora a esquiva do alvo. |
 | **Mangle** | 🐺 | 16 – 22 | 14% | **Wire Tangle**: Copia aleatoriamente o poder de um dos Toys (Toy Chica, Toy Bonnie, Toy Freddy) ou do Balloon Boy. |
 | **Toy Chica** | 🐤 | 11 – 16 | 17% | **Heal Food**: Regenera +15 HP ao atacante (máx. 100 HP). |
-| **Toy Bonnie** | 🐰 | 13 – 19 | 9% | **Neon Gas**: Causa 4 dano direto + envenena o alvo por 3 rondas (8 dano/ronda). |
-| **Balloon Boy** | 🎈 | 8 – 14 | 8% | **Flash Balloon**: Cega o alvo por 2 ataques (14 dano próprio em cada tentativa). |
+| **Toy Bonnie** | 🐰 | 13 – 19 | 9% | **Neon Gas**: Causa 4 dano direto + envenena o alvo por 3 rondas (5 dano/ronda). |
+| **Balloon Boy** | 🎈 | 8 – 14 | 8% | **Flash Balloon**: Cega o alvo por 2 ataques (17 dano próprio em cada tentativa). |
 | **Circus Baby** | 🎪 | 14 – 20 | 9% | **Scooper Reach**: Danos 2x + imobilização por 2 rondas (no-evade/no-resist). |
-| **Ballora** | 🩰 | 12 – 18 | 8% | **Spindash Ballet**: Imunidade a dano por 2 rondas + reflete 1.5x todo o dano recebido. |
+| **Ballora** | 🩰 | 12 – 18 | 8% | **Spindash Ballet**: Imunidade a dano por 1 ronda + reflete 1.5x todo o dano recebido. |
 | **Funtime Chica** | 🦩 | 13 – 19 | 8% | **Celebrity Flash**: Sorteia 50/50 entre Hipnotizado (stun 2 rondas) ou Confuso (1.5x dano próprio). |
 | **Funtime Freddy** | 🐻‍❄️ | 15 – 21 | 11% | **Bon-Bon Rocket**: Copia poder de Funtime Chica ou Funtime Foxy + 6 de dano extra. |
 | **Funtime Foxy** | 🦊 | 17 – 23 | 6% | **Hydraulic Overload**: Cura +9 HP + veneno 2.5x no próximo turno (no-resist). |
@@ -48,7 +48,7 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **Sundrop/Moondrop** | ☀️ | 13 – 19 | 6% | **Day/Night Shift**: Sorteia 50/50 Modo Sun (cura +15 HP) ou Modo Moon (cega por 2 rondas + 2.5x dano). |
 | **Vanny** | 🔪 | 12 – 18 | 12% | **Glitch Override**: Hackeia o alvo por 2 ataques (causa 50% de auto-dano adicional ao atacar). |
 | **Security Puppet** | 🎁 | 10 – 16 | 13% | **Security Healing**: Restaura +40 HP ao atacante (máx. 100 HP) + cooldown duplo (2 min) no próximo ataque. |
-| **The Mimic** | 🤖 | 15 – 23 | 3% | **Data Copy**: Copia qualquer poder (exceto Golden Freddy, Ennard e Scott Cawthon) e duplica x2 os valores de dano numéricos. |
+| **The Mimic** | 🤖 | 15 – 23 | 3% | **Data Copy**: Copia qualquer poder (exceto Golden Freddy, Ennard, The Mimic e Scott Cawthon) e duplica x2 os valores de dano numéricos. |
 | **Ennard** | 🕸️ | 16 – 24 | **Gatilho (100%)** | **The Scooping Room**: Emergem após qualquer Funtime (5/5 desbloqueados), herdando 1 dos 5 poderes com 100% de certeza. |
 | **Golden Freddy** | ✨ | **75** | **3%** | **Lendário / Secreto**: Aparece com 3% de probabilidade, causa 75 de dano fixo (ignorando qualquer defesa) + 2 turnos de invencibilidade! |
 | **Scott Cawthon** | 👨‍💻 | **100** | **10%** | **Secreto Final / O Criador**: Surge com 10% de hipótese após coleção completa (incluindo Golden Freddy e Ennard). Executa **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes duplo, Infinite Respawn, No Cooldown 30s) e reseta a coleção! |

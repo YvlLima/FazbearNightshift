@@ -81,13 +81,13 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
         resistNote = ' *(Reduzido para 2 de dano pela Resistência!)*';
       }
       extraDamage = initialDmg;
-      db.updatePlayerEffects(targetUser.id, { poisoned_turns: 3, poison_damage: 8 });
-      effectText = `🧪 **${power.name}**: Causou +${initialDmg} de dano direto inicial${resistNote} e envenenou **${targetUser.username}** durante 3 rondas (sofrerá 8 de dano por ronda)!`;
+      db.updatePlayerEffects(targetUser.id, { poisoned_turns: 3, poison_damage: 5 });
+      effectText = `🧪 **${power.name}**: Causou +${initialDmg} de dano direto inicial${resistNote} e envenenou **${targetUser.username}** durante 3 rondas (sofrerá 5 de dano por ronda)!`;
       break;
     }
     case 'Balloon Boy': {
       db.updatePlayerEffects(targetUser.id, { blinded_turns: 2 });
-      effectText = `🎈 **${power.name}**: Cegou **${targetUser.username}** durante os próximos 2 ataques dele (sofrerá 14 de dano a cada ataque tentado)!`;
+      effectText = `🎈 **${power.name}**: Cegou **${targetUser.username}** durante os próximos 2 ataques dele (sofrerá 17 de dano a cada ataque tentado)!`;
       break;
     }
     case 'Circus Baby': {
@@ -98,8 +98,8 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       break;
     }
     case 'Ballora': {
-      db.updatePlayerEffects(attackerUser.id, { reflect_turns: 2, immune_turns: 2 });
-      effectText = `🩰 **${power.name}**: **${attackerUser.username}** ativou a dança da Ballora! Durante 2 rondas, fica completamente imune a dano e reflete 1.5x todo o dano recebido de volta para quem a atacar!`;
+      db.updatePlayerEffects(attackerUser.id, { reflect_turns: 1, immune_turns: 1 });
+      effectText = `🩰 **${power.name}**: **${attackerUser.username}** ativou a dança da Ballora! Durante 1 ronda, fica completamente imune a dano e reflete 1.5x todo o dano recebido de volta para quem a atacar!`;
       break;
     }
     case 'Funtime Chica': {
@@ -458,13 +458,13 @@ module.exports = {
       statusDamageText += `\n🧪 Sofreste **${poisonDmg}** de dano de envenenamento! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
     }
 
-    // Cegueira (Flash Balloon: 14 dano próprio ao tentar atacar)
+    // Cegueira (Flash Balloon: 17 dano próprio ao tentar atacar)
     if (currentAttackerHp > 0 && currentAttackerState.blinded_turns > 0) {
       const remainingBlind = currentAttackerState.blinded_turns - 1;
-      currentAttackerHp = Math.max(0, currentAttackerHp - 14);
+      currentAttackerHp = Math.max(0, currentAttackerHp - 17);
       db.updatePlayerHp(attackerUser.id, currentAttackerHp);
       db.updatePlayerEffects(attackerUser.id, { blinded_turns: remainingBlind });
-      statusDamageText += `\n🙈 Estavas cego (Flash Balloon) e sofreste **14** de dano próprio ao tentar atacar! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
+      statusDamageText += `\n🙈 Estavas cego (Flash Balloon) e sofreste **17** de dano próprio ao tentar atacar! (${currentAttackerHp}/${currentAttackerState.max_hp} HP)`;
     }
 
     // Verificar se o atacante foi desligado por envenenamento/cegueira antes de prosseguir
