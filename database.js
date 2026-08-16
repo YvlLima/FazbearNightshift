@@ -46,6 +46,8 @@ const CREATE_TABLE_SQL = `
     double_damage_turns INTEGER NOT NULL DEFAULT 0,
     extra_self_damage INTEGER NOT NULL DEFAULT 0,
     hacked_turns INTEGER NOT NULL DEFAULT 0,
+    scott_unlocked INTEGER NOT NULL DEFAULT 0,
+    reduced_cooldown_attacks_remaining INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   );
@@ -96,6 +98,8 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasDoubleDamage = false;
     let hasExtraSelfDamage = false;
     let hasHackedTurns = false;
+    let hasScottUnlocked = false;
+    let hasReducedCooldown = false;
 
     while (checkStmt.step()) {
       const obj = checkStmt.getAsObject();
@@ -118,10 +122,12 @@ let dbReadyPromise = initSqlJs().then(SQL => {
       if (obj.name === 'double_damage_turns') hasDoubleDamage = true;
       if (obj.name === 'extra_self_damage') hasExtraSelfDamage = true;
       if (obj.name === 'hacked_turns') hasHackedTurns = true;
+      if (obj.name === 'scott_unlocked') hasScottUnlocked = true;
+      if (obj.name === 'reduced_cooldown_attacks_remaining') hasReducedCooldown = true;
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins || !hasStomachProtect || !hasDoubleCooldown || !hasLifeSaver || !hasDoubleDamage || !hasExtraSelfDamage || !hasHackedTurns) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins || !hasStomachProtect || !hasDoubleCooldown || !hasLifeSaver || !hasDoubleDamage || !hasExtraSelfDamage || !hasHackedTurns || !hasScottUnlocked || !hasReducedCooldown) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
@@ -143,6 +149,8 @@ let dbReadyPromise = initSqlJs().then(SQL => {
         if (!hasDoubleDamage) rawDb.run("ALTER TABLE players ADD COLUMN double_damage_turns INTEGER NOT NULL DEFAULT 0;");
         if (!hasExtraSelfDamage) rawDb.run("ALTER TABLE players ADD COLUMN extra_self_damage INTEGER NOT NULL DEFAULT 0;");
         if (!hasHackedTurns) rawDb.run("ALTER TABLE players ADD COLUMN hacked_turns INTEGER NOT NULL DEFAULT 0;");
+        if (!hasScottUnlocked) rawDb.run("ALTER TABLE players ADD COLUMN scott_unlocked INTEGER NOT NULL DEFAULT 0;");
+        if (!hasReducedCooldown) rawDb.run("ALTER TABLE players ADD COLUMN reduced_cooldown_attacks_remaining INTEGER NOT NULL DEFAULT 0;");
       } catch (e) {
         console.error('Erro na migração:', e.message);
       }
@@ -173,8 +181,8 @@ const dbAdapter = {
 
     if (!player) {
       rawDb.run(
-        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, ennard_unlocked, funtimes_seen, seen_animatronics, kills, total_attacks, total_wins, stomach_protect_turns, double_cooldown_turns, life_saver_turns, double_damage_turns, extra_self_damage, hacked_turns)
-         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, '[]', '[]', 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
+        `INSERT INTO players (user_id, animatronic, current_hp, max_hp, min_damage, max_damage, last_attack, stunned_turns, stun_dot, confused_turns, confused_multiplier, evade_next, resist_next_power, invincible_turns, poisoned_turns, poison_damage, blinded_turns, reflect_turns, immune_turns, ennard_pending, ennard_unlocked, funtimes_seen, seen_animatronics, kills, total_attacks, total_wins, stomach_protect_turns, double_cooldown_turns, life_saver_turns, double_damage_turns, extra_self_damage, hacked_turns, scott_unlocked, reduced_cooldown_attacks_remaining)
+         VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, '[]', '[]', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
         [
           userId,
           FIXED_PLAYER_MAX_HP,
@@ -213,6 +221,20 @@ const dbAdapter = {
 
     rawDb.run(
       `UPDATE players SET animatronic = 'Ennard', min_damage = ?, max_damage = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [minDmg, maxDmg, userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  assignScott(userId) {
+    this.getOrCreatePlayer(userId);
+    const scottData = getAnimatronicByName('Scott Cawthon');
+    const minDmg = scottData ? scottData.minDamage : 100;
+    const maxDmg = scottData ? scottData.maxDamage : 100;
+
+    rawDb.run(
+      `UPDATE players SET animatronic = 'Scott Cawthon', min_damage = ?, max_damage = ?, updated_at = datetime('now') WHERE user_id = ?`,
       [minDmg, maxDmg, userId]
     );
     saveDatabase();
@@ -293,8 +315,31 @@ const dbAdapter = {
     return this.getOrCreatePlayer(userId);
   },
 
+  setReducedCooldownAttacks(userId, count) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET reduced_cooldown_attacks_remaining = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [count, userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  decrementReducedCooldown(userId) {
+    const player = this.getOrCreatePlayer(userId);
+    if (player.reduced_cooldown_attacks_remaining > 0) {
+      const nextCount = player.reduced_cooldown_attacks_remaining - 1;
+      rawDb.run(
+        `UPDATE players SET reduced_cooldown_attacks_remaining = ?, updated_at = datetime('now') WHERE user_id = ?`,
+        [nextCount, userId]
+      );
+      saveDatabase();
+    }
+    return this.getOrCreatePlayer(userId);
+  },
+
   recordAnimatronicSeen(userId, animName) {
-    const { FUNTIME_NAMES } = require('./game/fnaf');
+    const { FUNTIME_NAMES, ANIMATRONICS } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
     let seenList = [];
@@ -322,22 +367,26 @@ const dbAdapter = {
       updated = true;
     }
 
-    const isUnlocked = FUNTIME_NAMES.every(name => funtimesList.includes(name));
-    const newlyUnlocked = isUnlocked && player.ennard_unlocked === 0;
+    const isEnnardUnlocked = FUNTIME_NAMES.every(name => funtimesList.includes(name));
+    const newlyEnnardUnlocked = isEnnardUnlocked && player.ennard_unlocked === 0;
 
-    if (updated || newlyUnlocked) {
+    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
+    const newlyScottUnlocked = isScottUnlocked && player.scott_unlocked === 0;
+
+    if (updated || newlyEnnardUnlocked || newlyScottUnlocked) {
       rawDb.run(
-        `UPDATE players SET seen_animatronics = ?, funtimes_seen = ?, ennard_unlocked = ?, updated_at = datetime('now') WHERE user_id = ?`,
-        [JSON.stringify(seenList), JSON.stringify(funtimesList), isUnlocked ? 1 : 0, userId]
+        `UPDATE players SET seen_animatronics = ?, funtimes_seen = ?, ennard_unlocked = ?, scott_unlocked = ?, updated_at = datetime('now') WHERE user_id = ?`,
+        [JSON.stringify(seenList), JSON.stringify(funtimesList), isEnnardUnlocked ? 1 : 0, isScottUnlocked ? 1 : 0, userId]
       );
       saveDatabase();
     }
 
-    return { seenList, funtimesList, ennardUnlocked: isUnlocked };
+    return { seenList, funtimesList, ennardUnlocked: isEnnardUnlocked, scottUnlocked: isScottUnlocked };
   },
 
   getPlayerCollection(userId) {
-    const { FUNTIME_NAMES } = require('./game/fnaf');
+    const { FUNTIME_NAMES, ANIMATRONICS } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
     let seenList = [];
@@ -354,12 +403,24 @@ const dbAdapter = {
       funtimesList = [];
     }
 
-    const isUnlocked = Boolean(player.ennard_unlocked === 1 || FUNTIME_NAMES.every(name => funtimesList.includes(name)));
+    const isEnnardUnlocked = Boolean(player.ennard_unlocked === 1 || FUNTIME_NAMES.every(name => funtimesList.includes(name)));
+
+    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const isScottUnlocked = Boolean(player.scott_unlocked === 1 || (requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name))));
+
+    if (isScottUnlocked && player.scott_unlocked === 0) {
+      rawDb.run(
+        `UPDATE players SET scott_unlocked = 1, updated_at = datetime('now') WHERE user_id = ?`,
+        [userId]
+      );
+      saveDatabase();
+    }
 
     return {
       seenList,
       funtimesList,
-      ennardUnlocked: isUnlocked
+      ennardUnlocked: isEnnardUnlocked,
+      scottUnlocked: isScottUnlocked
     };
   },
 
@@ -380,7 +441,30 @@ const dbAdapter = {
     return FUNTIME_NAMES.every(name => seenList.includes(name));
   },
 
+  hasUnlockedScott(userId) {
+    const { ANIMATRONICS } = require('./game/fnaf');
+    const player = this.getOrCreatePlayer(userId);
+    if (player.scott_unlocked === 1) return true;
+    let seenList = [];
+    try {
+      seenList = JSON.parse(player.seen_animatronics || '[]');
+    } catch(e) {
+      seenList = [];
+    }
+    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const isUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
+    if (isUnlocked && player.scott_unlocked === 0) {
+      rawDb.run(
+        `UPDATE players SET scott_unlocked = 1, updated_at = datetime('now') WHERE user_id = ?`,
+        [userId]
+      );
+      saveDatabase();
+    }
+    return isUnlocked;
+  },
+
   resetEnnardProgress(userId) {
+    const { ANIMATRONICS } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
     let seenList = [];
@@ -395,11 +479,35 @@ const dbAdapter = {
       seenList.push('Ennard');
     }
 
+    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
+
     // Resetar APENAS o progresso de desbloqueio do Ennard (funtimes_seen)
-    // A coleção geral de animatronics (seen_animatronics) mantém os Funtimes já descobertos com ✅!
     rawDb.run(
-      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, seen_animatronics = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [JSON.stringify(seenList), userId]
+      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = ?, seen_animatronics = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [isScottUnlocked ? 1 : 0, JSON.stringify(seenList), userId]
+    );
+    saveDatabase();
+
+    return this.getOrCreatePlayer(userId);
+  },
+
+  resetScottCollection(userId) {
+    const player = this.getOrCreatePlayer(userId);
+
+    let seenList = [];
+    try {
+      seenList = JSON.parse(player.seen_animatronics || '[]');
+    } catch(e) {
+      seenList = [];
+    }
+
+    const keepGolden = seenList.includes('Golden Freddy');
+    const newSeenList = keepGolden ? ['Golden Freddy'] : [];
+
+    rawDb.run(
+      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = 0, seen_animatronics = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [JSON.stringify(newSeenList), userId]
     );
     saveDatabase();
 

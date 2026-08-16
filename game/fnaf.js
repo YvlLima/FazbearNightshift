@@ -343,6 +343,19 @@ const ANIMATRONICS = [
       chance: null,
       description: 'Emergem com 100% de certeza na ronda seguinte após o jogador utilizar qualquer um dos 5 Funtimes na coleção, herdando aleatoriamente o seu poder especial.'
     }
+  },
+  {
+    name: 'Scott Cawthon',
+    emoji: '👨‍💻',
+    minDamage: 100,
+    maxDamage: 100,
+    description: 'O criador. A entidade mais poderosa do jogo — reescreve as regras a seu favor sempre que aparece. Requer a coleção completa (exceto Golden Freddy) para ter hipótese de surgir.',
+    gif: 'https://media.giphy.com/media/Gyol2Mkqle6gZ3oPOS/giphy.gif',
+    power: {
+      name: 'Developer Console',
+      chance: 0.10,
+      description: 'Reseta o HP do alvo a 0 (KO instantâneo), concede 5 turnos de invencibilidade ao atacante (God Mode), limpa os seus efeitos negativos e inflige todos os status negativos no alvo por 3 rondas (Patch Notes), previne a própria morte (Infinite Respawn) e concede cooldown reduzido de 30s nos próximos 5 ataques (No Cooldown).'
+    }
   }
 ];
 
@@ -350,12 +363,12 @@ const FUNTIME_NAMES = ['Circus Baby', 'Ballora', 'Funtime Chica', 'Funtime Fredd
 const MANGLE_COPIABLE_NAMES = ['Toy Chica', 'Toy Bonnie', 'Toy Freddy', 'Balloon Boy'];
 
 /**
- * Retorna um animatronic aleatório do roster padrão (exclui Golden Freddy).
+ * Retorna um animatronic aleatório do roster padrão (exclui Golden Freddy, Ennard e Scott Cawthon).
  * @returns {object} Objeto do animatronic selecionado
  */
 function getRandomAnimatronic() {
-  // O sorteio normal exclui Ennard (já que Ennard só aparece via gatilho ennard_pending)
-  const regularAnimatronics = ANIMATRONICS.filter(a => a.name !== 'Ennard');
+  // O sorteio normal exclui Ennard e Scott Cawthon
+  const regularAnimatronics = ANIMATRONICS.filter(a => a.name !== 'Ennard' && a.name !== 'Scott Cawthon');
   const randomIndex = Math.floor(Math.random() * regularAnimatronics.length);
   return { ...regularAnimatronics[randomIndex] };
 }
@@ -368,9 +381,9 @@ function getRandomAnimatronic() {
 function getRandomDifferentAnimatronic(currentName) {
   if (!currentName) return getRandomAnimatronic();
 
-  // Exclui Ennard e o animatronic atual do sorteio normal
+  // Exclui Ennard, Scott Cawthon e o animatronic atual do sorteio normal
   const filtered = ANIMATRONICS.filter(
-    a => a.name !== 'Ennard' && a.name.toLowerCase() !== currentName.toLowerCase()
+    a => a.name !== 'Ennard' && a.name !== 'Scott Cawthon' && a.name.toLowerCase() !== currentName.toLowerCase()
   );
 
   const randomIndex = Math.floor(Math.random() * filtered.length);
@@ -458,7 +471,7 @@ function getAllAnimatronics() {
   return [...ANIMATRONICS, { ...GOLDEN_FREDDY }];
 }
 
-const MIMIC_EXCLUDED_NAMES = ['Golden Freddy', 'Ennard', 'The Mimic'];
+const MIMIC_EXCLUDED_NAMES = ['Golden Freddy', 'Ennard', 'The Mimic', 'Scott Cawthon'];
 
 module.exports = {
   GOLDEN_FREDDY,

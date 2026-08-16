@@ -54,6 +54,7 @@ module.exports = {
     }
     if (player.blinded_turns > 0) activeEffects.push(`🙈 **Cego** (14 de dano próprio ao atacar | ${player.blinded_turns} ataques restantes)`);
     if (player.stomach_protect_turns === 1) activeEffects.push(`🎤 **Escotilha Torácica (Glamrock Freddy)** (engole próximo ataque e devolve 2x)`);
+    if (player.reduced_cooldown_attacks_remaining > 0) activeEffects.push(`⚡ **No Cooldown (Scott Cawthon)** (30s cooldown | ${player.reduced_cooldown_attacks_remaining} ataques restantes)`);
     if (player.double_cooldown_turns > 0) activeEffects.push(`⏳ **Cooldown Duplo** (2 min de espera | ${player.double_cooldown_turns} rondas restantes)`);
     if (player.life_saver_turns > 0) activeEffects.push(`🍕 **Modo Sobrevivência (Garbage Gobble)** (HP mín 1 | ${player.life_saver_turns} rondas restantes)`);
     if (player.double_damage_turns > 0) activeEffects.push(`🎸 **Dano Duplo (2x)** (${player.double_damage_turns} rondas restantes)`);

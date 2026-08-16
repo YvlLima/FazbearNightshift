@@ -25,7 +25,7 @@ module.exports = {
       });
     }
 
-    const { seenList, funtimesList, ennardUnlocked } = db.getPlayerCollection(targetUser.id);
+    const { seenList, funtimesList, ennardUnlocked, scottUnlocked } = db.getPlayerCollection(targetUser.id);
 
     // Definir as categorias de animatronics
     const classicosNames = ['Freddy', 'Foxy', 'Chica', 'Bonnie', 'Puppet', 'Springtrap'];
@@ -42,13 +42,15 @@ module.exports = {
       }).join('\n');
     };
 
-    // Secretos: Golden Freddy e Ennard
+    // Secretos: Golden Freddy, Ennard e Scott Cawthon
     const isGoldenSeen = seenList.includes('Golden Freddy');
     const isEnnardSeen = seenList.includes('Ennard');
+    const isScottUnlocked = scottUnlocked;
 
     const secretosText = [
       isGoldenSeen ? `✅ ✨ **Golden Freddy**` : `🔒 ~~Golden Freddy~~`,
-      isEnnardSeen ? `✅ 🕸️ **Ennard**` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 ~~Ennard~~`)
+      isEnnardSeen ? `✅ 🕸️ **Ennard**` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 ~~Ennard~~`),
+      isScottUnlocked ? `✅ 👨‍💻 **Scott Cawthon**` : `🔒 ~~Scott Cawthon~~`
     ].join('\n');
 
     // Progresso do Ennard
@@ -62,7 +64,7 @@ module.exports = {
       ennardSection = `🔓 **Progresso Ennard**: **${foundCount}/5** Funtimes encontrados.\n*(Falta encontrar: ${missingFuntimes.join(', ')})*`;
     }
 
-    const totalRosterCount = ANIMATRONICS.length + 1; // ANIMATRONICS (incl. Ennard) + Golden Freddy = 26 total
+    const totalRosterCount = ANIMATRONICS.length + 1; // ANIMATRONICS (incl. Ennard e Scott Cawthon) + Golden Freddy = 27 total
     const totalSeenCount = seenList.length;
 
     const embed = new EmbedBuilder()

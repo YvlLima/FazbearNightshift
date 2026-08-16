@@ -262,17 +262,25 @@ module.exports = {
     // 3. Obter registo atual do atacante para verificar o cooldown e efeitos
     const currentAttackerState = db.getOrCreatePlayer(attackerUser.id);
 
-    // 4. Verificar cooldown (com suporte a double_cooldown_turns)
+    // 4. Verificar cooldown (com suporte a double_cooldown_turns e reduced_cooldown_attacks_remaining)
     const now = Date.now();
     const isDoubleCooldown = currentAttackerState.double_cooldown_turns > 0;
-    const cooldownMs = isDoubleCooldown ? 120 * 1000 : (config.attackCooldownMs || 60 * 1000);
+    const hasReducedCooldown = currentAttackerState.reduced_cooldown_attacks_remaining > 0;
+
+    let cooldownMs = config.attackCooldownMs || 60 * 1000;
+    if (isDoubleCooldown) {
+      cooldownMs = 120 * 1000;
+    } else if (hasReducedCooldown) {
+      cooldownMs = 30 * 1000;
+    }
+
     const timePassed = now - currentAttackerState.last_attack;
 
     if (timePassed < cooldownMs) {
       const remainingSeconds = Math.ceil((cooldownMs - timePassed) / 1000);
       const cooldownEmbed = new EmbedBuilder()
         .setTitle('⏳ Cooldown de Ataque')
-        .setDescription(`Tens de aguardar **${remainingSeconds} segundos** antes de desferires outro ataque!${isDoubleCooldown ? ' *(Cooldown Duplo de 2 minutos ativo!)*' : ''}`)
+        .setDescription(`Tens de aguardar **${remainingSeconds} segundos** antes de desferires outro ataque!${isDoubleCooldown ? ' *(Cooldown Duplo de 2 minutos ativo!)*' : (hasReducedCooldown ? ' *(Cooldown Reduzido de 30s ativo!)*' : '')}`)
         .setColor(0xf1c40f)
         .setTimestamp();
 
@@ -281,6 +289,114 @@ module.exports = {
 
     if (isDoubleCooldown) {
       db.updatePlayerEffects(attackerUser.id, { double_cooldown_turns: currentAttackerState.double_cooldown_turns - 1 });
+    }
+
+    // 4.5. VERIFICAÇÃO DE APARIÇÃO DO SCOTT CAWTHON (10% DE CHANCE SE DESBLOQUEADO)
+    const isScottUnlocked = db.hasUnlockedScott(attackerUser.id);
+    const isScottDrawn = isScottUnlocked && (Math.random() < 0.10);
+
+    if (isScottDrawn) {
+      const attacker = db.assignScott(attackerUser.id);
+      const animInfo = getAnimatronicByName('Scott Cawthon');
+
+      db.setLastAttack(attackerUser.id, now);
+      db.incrementAttacks(attackerUser.id);
+
+      let target = db.getOrCreatePlayer(targetUser.id);
+      const originalTargetHp = target.current_hp;
+
+      // 1. Reset Total: reduz HP do alvo a 0 (KO) e reseta HP do alvo para 100
+      db.updatePlayerHp(targetUser.id, 0);
+      db.incrementWins(attackerUser.id);
+      db.incrementPlayerKills(attackerUser.id);
+      db.recordDuel({
+        attackerId: attackerUser.id,
+        targetId: targetUser.id,
+        animatronic: 'Scott Cawthon',
+        damage: originalTargetHp,
+        wasKo: 1,
+        timestamp: now
+      });
+      db.resetPlayerHp(targetUser.id);
+
+      // 2. God Mode: 100 HP e 5 turnos de invencibilidade total ao atacante
+      db.updatePlayerHp(attackerUser.id, 100);
+      db.updatePlayerEffects(attackerUser.id, { invincible_turns: 5 });
+
+      // 3. Patch Notes (efeito duplo, sequencial):
+      // a) Remove do próprio atacante todos os efeitos negativos
+      db.updatePlayerEffects(attackerUser.id, {
+        stunned_turns: 0,
+        stun_dot: 0,
+        poisoned_turns: 0,
+        poison_damage: 8,
+        blinded_turns: 0,
+        confused_turns: 0,
+        confused_multiplier: 1.0,
+        extra_self_damage: 0,
+        hacked_turns: 0,
+        double_cooldown_turns: 0
+      });
+
+      // b) Aplica ao alvo renascido (100 HP) TODOS os efeitos negativos por 3 rondas
+      db.updatePlayerEffects(targetUser.id, {
+        stunned_turns: 3,
+        stun_dot: 5,
+        poisoned_turns: 3,
+        poison_damage: 8,
+        blinded_turns: 3,
+        confused_turns: 3,
+        confused_multiplier: 1.0,
+        hacked_turns: 3
+      });
+
+      // 4. Infinite Respawn: atacante mantido com 100 HP (sem KO)
+      // 5. No Cooldown: 30s de cooldown nos próximos 5 ataques
+      db.setReducedCooldownAttacks(attackerUser.id, 5);
+
+      // Reset total da coleção do atacante (exceto Golden Freddy) e scott_unlocked = false
+      db.resetScottCollection(attackerUser.id);
+
+      const scottEmbed = new EmbedBuilder()
+        .setTitle('👨‍💻 SCOTT CAWTHON ASSUMIU O CONTROLO! 👨‍💻')
+        .setColor(0xFF0000)
+        .setThumbnail(attackerUser.displayAvatarURL({ dynamic: true }))
+        .addFields(
+          {
+            name: '🎮 O Criador Entrou no Jogo!',
+            value: `**${attackerUser.username}** invocou **Scott Cawthon**, a entidade suprema e criadora de FNAF!`,
+            inline: false
+          },
+          {
+            name: '💻 Poder Especial: Developer Console',
+            value: `🔴 **1. Reset Total**: Reduziu o HP de **${targetUser.username}** a **0 HP** *(KO Instantâneo)*, ignorando qualquer defesa!\n` +
+                   `🛡️ **2. God Mode**: **${attackerUser.username}** recuperou HP máximo (100 HP) e ganhou **5 turnos de Invencibilidade Total**!\n` +
+                   `🔄 **3. Patch Notes**: Limpou todos os seus próprios status negativos e infligiu **TODOS os efeitos negativos** (Stun, Poison, Blind, Confusion e Hack por 3 rondas) em **${targetUser.username}**!\n` +
+                   `♾️ **4. Infinite Respawn**: Preveniu qualquer KO contra o atacante neste turno!\n` +
+                   `⚡ **5. No Cooldown**: Cooldown de ataque reduzido para **30s** nos próximos **5 ataques** de **${attackerUser.username}**!`,
+            inline: false
+          },
+          {
+            name: `🛡️ Defensor: 👤 ${targetUser.username}`,
+            value: `Ficou com **100/100 HP** *(Desligado e Renascido com Todos os Efeitos Negativos)*`,
+            inline: false
+          },
+          {
+            name: '🌀 Reset de Coleção Completa!',
+            value: `Toda a coleção de **${attackerUser.username}** foi reiniciada (exceto Golden Freddy)! Terá de reunir todos os 25 animatronics novamente para voltar a desbloquear Scott Cawthon.`,
+            inline: false
+          }
+        )
+        .setDescription(`\n💀 **${targetUser.username}** foi desligado por **Scott Cawthon**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`)
+        .setFooter({ text: 'Developer Console • Cooldown reduzido de 30s ativado para os próximos 5 ataques!' })
+        .setTimestamp();
+
+      if (animInfo && animInfo.gif && animInfo.gif !== 'COLOCAR_URL_AQUI') {
+        const directGifUrl = await resolveDirectGifUrl(animInfo.gif);
+        if (directGifUrl) scottEmbed.setImage(directGifUrl);
+      }
+
+      return interaction.reply({ embeds: [scottEmbed] });
     }
 
     // 5. VERIFICAÇÃO DE EFEITOS NO ATACANTE (PARALISIA / IMOBILIZAÇÃO)
@@ -477,6 +593,10 @@ module.exports = {
       const koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **Golden Freddy**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
       db.resetPlayerHp(targetUser.id);
 
+      if (hasReducedCooldown) {
+        db.decrementReducedCooldown(attackerUser.id);
+      }
+
       const goldenEmbed = new EmbedBuilder()
         .setTitle('✨ GOLDEN FREDDY APARECEU! ✨')
         .setColor(0xFFD700)
@@ -499,7 +619,7 @@ module.exports = {
           }
         )
         .setDescription(koMessage)
-        .setFooter({ text: 'Cooldown de 1 minuto aplicado ao atacante.' })
+        .setFooter({ text: hasReducedCooldown ? 'Cooldown reduzido de 30s aplicado ao atacante.' : 'Cooldown de 1 minuto aplicado ao atacante.' })
         .setTimestamp();
 
       return interaction.reply({ embeds: [goldenEmbed] });
@@ -753,7 +873,11 @@ module.exports = {
       inline: false
     });
 
-    embed.setFooter({ text: 'Cooldown de 1 minuto aplicado ao atacante.' }).setTimestamp();
+    if (hasReducedCooldown) {
+      db.decrementReducedCooldown(attackerUser.id);
+    }
+
+    embed.setFooter({ text: hasReducedCooldown ? 'Cooldown reduzido de 30s aplicado ao atacante.' : 'Cooldown de 1 minuto aplicado ao atacante.' }).setTimestamp();
 
     if (animInfo && animInfo.gif && animInfo.gif !== 'COLOCAR_URL_AQUI') {
       const directGifUrl = await resolveDirectGifUrl(animInfo.gif);
