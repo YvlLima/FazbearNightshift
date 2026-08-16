@@ -96,7 +96,7 @@ module.exports = {
           inline: true
         },
         {
-          name: '👨‍💻 Scott Cawthon',
+          name: '💻 Scott Cawthon',
           value: scottText,
           inline: true
         },
