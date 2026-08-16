@@ -60,6 +60,9 @@ module.exports = {
     if (player.double_damage_turns > 0) activeEffects.push(`🎸 **Dano Duplo (2x)** (${player.double_damage_turns} rondas restantes)`);
     if (player.hacked_turns > 0) activeEffects.push(`💻 **Hackeado (Glitch Override)** (50% auto-dano ao atacar | ${player.hacked_turns} ataques restantes)`);
 
+    const isScottUnlocked = db.hasUnlockedScott(targetUser.id);
+    const scottText = isScottUnlocked ? 'Desbloqueado (10%) ✅' : 'Bloqueado 🔒 *(Coleção incompleta)*';
+
     const effectsText = activeEffects.length > 0 ? activeEffects.join('\n') : 'Nenhum efeito ativo';
     const ennardText = isEnnardUnlocked ? 'Desbloqueado ✅' : `**${funtimesCount}/5** Funtimes descobertos`;
 
@@ -76,6 +79,11 @@ module.exports = {
         {
           name: '🕸️ Progresso do Ennard',
           value: ennardText,
+          inline: true
+        },
+        {
+          name: '👨‍💻 Scott Cawthon',
+          value: scottText,
           inline: true
         },
         {

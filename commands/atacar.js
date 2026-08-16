@@ -221,6 +221,10 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       }
       break;
     }
+    case 'Scott Cawthon': {
+      effectText = `👨‍💻 **${power.name}**: **Scott Cawthon** assumiu o controlo e ativou o Developer Console!`;
+      break;
+    }
   }
 
   return { power, extraDamage, effectText };

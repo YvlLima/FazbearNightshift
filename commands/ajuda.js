@@ -39,9 +39,10 @@ module.exports = {
           name: '✨ Animatronics Secretos & Especiais',
           value:
             '🐺 **Mangle**: Copia aleatoriamente o poder especial de um dos Toys ou do Balloon Boy.\n' +
-            '🤖 **The Mimic**: Copia qualquer poder do roster (exceto Golden Freddy e Ennard) e duplica 2x os seus valores numéricos!\n' +
+            '🤖 **The Mimic**: Copia qualquer poder do roster (exceto Golden Freddy, Ennard e Scott Cawthon) e duplica 2x os seus valores numéricos!\n' +
             '🕸️ **Ennard**: Fusão dos 5 animatronics Funtime. Após descobrires os 5 Funtimes na tua coleção, o **Ennard** emergirá no teu próximo ataque com **100% de probabilidade** de herdar um dos seus poderes!\n' +
-            '✨ **Golden Freddy**: 1% de chance ultra-rara de ser sorteado em qualquer ataque! Causa **Instakill imediato (100 de dano)** e concede-te **2 turnos de invencibilidade total**.',
+            '✨ **Golden Freddy**: 1% de chance ultra-rara de ser sorteado em qualquer ataque! Causa **Instakill imediato (100 de dano)** e concede-te **2 turnos de invencibilidade total**.\n' +
+            '👨‍💻 **Scott Cawthon**: O criador e entidade mais poderosa do jogo! Requer a coleção completa dos 25 animatronics (exceto Golden Freddy) para desbloquear. Surge com **10% de hipótese** a cada ataque, ativando **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes nos dois sentidos, Infinite Respawn e Cooldown de 30s) e reseta a coleção!',
           inline: false
         },
         {
