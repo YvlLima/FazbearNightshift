@@ -403,6 +403,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
 
   if (currentAttackerHp === 0) {
     db.setLastAttack(attackerUser.id, now);
+    db.incrementPlayerDeaths(attackerUser.id);
     db.resetPlayerHp(attackerUser.id);
     return {
       type: 'status_ko',
@@ -441,6 +442,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
     });
 
     if (isSelfKo) {
+      db.incrementPlayerDeaths(attackerUser.id);
       db.resetPlayerHp(attackerUser.id);
     }
 
@@ -507,6 +509,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
     if (isKo) {
       db.incrementWins(attackerUser.id);
       db.incrementPlayerKills(attackerUser.id);
+      db.incrementPlayerDeaths(targetUser.id);
       db.recordDuel({
         attackerId: attackerUser.id,
         targetId: targetUser.id,
@@ -681,6 +684,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
       stomachReflectMsg = `\n\n🎤 **STOMACH HATCH PROTECT**: **${targetUser.username}** engoliu o ataque e devolveu **${reflectedDmg}** de dano (2x) a **${attackerUser.username}**!${resistNote}`;
       if (newAttackerHp === 0) {
         stomachReflectMsg += `\n💀 **${attackerUser.username}** foi desligado pelo contra-ataque do Glamrock Freddy!\n⚙️ A vida de **${attackerUser.username}** foi reiniciada para 100 HP.`;
+        db.incrementPlayerDeaths(attackerUser.id);
         db.resetPlayerHp(attackerUser.id);
       }
     }
@@ -698,6 +702,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
 
     if (newAttackerHpAfterReflect === 0) {
       balloraReflectMsg += `\n💀 **${attackerUser.username}** foi desligado pelo dano refletido da Ballora!\n⚙️ A vida de **${attackerUser.username}** foi reiniciada para 100 HP.`;
+      db.incrementPlayerDeaths(attackerUser.id);
       db.resetPlayerHp(attackerUser.id);
     }
 
@@ -726,6 +731,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
   if (isTargetKo) {
     db.incrementWins(attackerUser.id);
     db.incrementPlayerKills(attackerUser.id);
+    db.incrementPlayerDeaths(targetUser.id);
     koMessage = `\n\n💀 **${targetUser.username}** foi desligado por **${attacker.animatronic}**!\n⚙️ A vida de **${targetUser.username}** foi reiniciada para 100 HP.`;
     db.resetPlayerHp(targetUser.id);
   }

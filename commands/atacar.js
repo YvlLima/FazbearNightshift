@@ -322,7 +322,12 @@ function attachButtonCollector(responseMessage, parentInteraction, attackerUser,
       const player = db.getOrCreatePlayer(btnInteraction.user.id);
       const totalAttacks = player.total_attacks || 0;
       const totalWins = player.total_wins || 0;
-      const winRate = totalAttacks > 0 ? ((totalWins / totalAttacks) * 100).toFixed(1) : '0.0';
+      const totalDeaths = player.total_deaths || 0;
+
+      const totalDuelsFinished = totalWins + totalDeaths;
+      const winRateText = totalDuelsFinished > 0
+        ? `${((totalWins / totalDuelsFinished) * 100).toFixed(1)}%`
+        : 'Sem dados suficientes';
 
       const lastAnimName = player.animatronic || 'Nenhum';
       const lastAnim = getAnimatronicByName(lastAnimName);
@@ -335,9 +340,10 @@ function attachButtonCollector(responseMessage, parentInteraction, attackerUser,
         .addFields(
           { name: '❤️ Vida Atual', value: `**${player.current_hp}/${player.max_hp} HP**`, inline: true },
           { name: '🤖 Último Animatronic Usado', value: `${lastEmoji} **${lastAnimName}**`, inline: true },
-          { name: '💀 Eliminações (KOs / Vitórias)', value: `**${player.kills} KOs**`, inline: true },
           { name: '⚔️ Total de Ataques', value: `**${totalAttacks} ataques**`, inline: true },
-          { name: '🎯 Taxa de Vitórias', value: `**${winRate}%**`, inline: true }
+          { name: '🎯 Vitórias (KOs Causados)', value: `**${totalWins} vitórias**`, inline: true },
+          { name: '💀 Mortes (Derrotas)', value: `**${totalDeaths} mortes**`, inline: true },
+          { name: '📊 Taxa de Vitórias', value: `**${winRateText}**`, inline: true }
         )
         .setFooter({ text: 'Duelos FNAF PvP • Fazbear Nightshift' })
         .setTimestamp();

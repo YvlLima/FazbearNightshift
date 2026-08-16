@@ -40,6 +40,7 @@ const CREATE_TABLE_SQL = `
     kills INTEGER NOT NULL DEFAULT 0,
     total_attacks INTEGER NOT NULL DEFAULT 0,
     total_wins INTEGER NOT NULL DEFAULT 0,
+    total_deaths INTEGER NOT NULL DEFAULT 0,
     stomach_protect_turns INTEGER NOT NULL DEFAULT 0,
     double_cooldown_turns INTEGER NOT NULL DEFAULT 0,
     life_saver_turns INTEGER NOT NULL DEFAULT 0,
@@ -135,6 +136,7 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasSeenAnimatronics = false;
     let hasTotalAttacks = false;
     let hasTotalWins = false;
+    let hasTotalDeaths = false;
     let hasStomachProtect = false;
     let hasDoubleCooldown = false;
     let hasLifeSaver = false;
@@ -159,6 +161,7 @@ let dbReadyPromise = initSqlJs().then(SQL => {
       if (obj.name === 'seen_animatronics') hasSeenAnimatronics = true;
       if (obj.name === 'total_attacks') hasTotalAttacks = true;
       if (obj.name === 'total_wins') hasTotalWins = true;
+      if (obj.name === 'total_deaths') hasTotalDeaths = true;
       if (obj.name === 'stomach_protect_turns') hasStomachProtect = true;
       if (obj.name === 'double_cooldown_turns') hasDoubleCooldown = true;
       if (obj.name === 'life_saver_turns') hasLifeSaver = true;
@@ -170,7 +173,7 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins || !hasStomachProtect || !hasDoubleCooldown || !hasLifeSaver || !hasDoubleDamage || !hasExtraSelfDamage || !hasHackedTurns || !hasScottUnlocked || !hasReducedCooldown) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins || !hasTotalDeaths || !hasStomachProtect || !hasDoubleCooldown || !hasLifeSaver || !hasDoubleDamage || !hasExtraSelfDamage || !hasHackedTurns || !hasScottUnlocked || !hasReducedCooldown) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
@@ -186,6 +189,7 @@ let dbReadyPromise = initSqlJs().then(SQL => {
         if (!hasSeenAnimatronics) rawDb.run("ALTER TABLE players ADD COLUMN seen_animatronics TEXT NOT NULL DEFAULT '[]';");
         if (!hasTotalAttacks) rawDb.run("ALTER TABLE players ADD COLUMN total_attacks INTEGER NOT NULL DEFAULT 0;");
         if (!hasTotalWins) rawDb.run("ALTER TABLE players ADD COLUMN total_wins INTEGER NOT NULL DEFAULT 0;");
+        if (!hasTotalDeaths) rawDb.run("ALTER TABLE players ADD COLUMN total_deaths INTEGER NOT NULL DEFAULT 0;");
         if (!hasStomachProtect) rawDb.run("ALTER TABLE players ADD COLUMN stomach_protect_turns INTEGER NOT NULL DEFAULT 0;");
         if (!hasDoubleCooldown) rawDb.run("ALTER TABLE players ADD COLUMN double_cooldown_turns INTEGER NOT NULL DEFAULT 0;");
         if (!hasLifeSaver) rawDb.run("ALTER TABLE players ADD COLUMN life_saver_turns INTEGER NOT NULL DEFAULT 0;");
@@ -603,6 +607,16 @@ const dbAdapter = {
     this.getOrCreatePlayer(userId);
     rawDb.run(
       `UPDATE players SET total_wins = total_wins + 1, updated_at = datetime('now') WHERE user_id = ?`,
+      [userId]
+    );
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
+  incrementPlayerDeaths(userId) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run(
+      `UPDATE players SET total_deaths = total_deaths + 1, updated_at = datetime('now') WHERE user_id = ?`,
       [userId]
     );
     saveDatabase();

@@ -29,7 +29,12 @@ module.exports = {
 
     const totalAttacks = player.total_attacks || 0;
     const totalWins = player.total_wins || 0;
-    const winRate = totalAttacks > 0 ? ((totalWins / totalAttacks) * 100).toFixed(1) : '0.0';
+    const totalDeaths = player.total_deaths || 0;
+
+    const totalDuelsFinished = totalWins + totalDeaths;
+    const winRateText = totalDuelsFinished > 0
+      ? `${((totalWins / totalDuelsFinished) * 100).toFixed(1)}%`
+      : 'Sem dados suficientes';
 
     const lastAnimName = player.animatronic || 'Nenhum';
     const lastAnim = getAnimatronicByName(lastAnimName);
@@ -51,18 +56,23 @@ module.exports = {
           inline: true
         },
         {
-          name: '💀 Eliminações (KOs / Vitórias)',
-          value: `**${player.kills} KOs**`,
-          inline: true
-        },
-        {
           name: '⚔️ Total de Ataques',
           value: `**${totalAttacks} ataques**`,
           inline: true
         },
         {
-          name: '🎯 Taxa de Vitórias',
-          value: `**${winRate}%**`,
+          name: '🎯 Vitórias (KOs Causados)',
+          value: `**${totalWins} vitórias**`,
+          inline: true
+        },
+        {
+          name: '💀 Mortes (Derrotas)',
+          value: `**${totalDeaths} mortes**`,
+          inline: true
+        },
+        {
+          name: '📊 Taxa de Vitórias',
+          value: `**${winRateText}**`,
           inline: true
         }
       )
