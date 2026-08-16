@@ -233,7 +233,7 @@ const ANIMATRONICS = [
     minDamage: 14,
     maxDamage: 20,
     description: 'Protetor robusto dos guardas noturnos com escotilha torácica protetora.',
-    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/uGm18DPGk7ajhLJpQN/giphy.gif',
     power: {
       name: 'Stomach Hatch Protect',
       chance: 0.09, // 9%
@@ -246,7 +246,7 @@ const ANIMATRONICS = [
     minDamage: 11,
     maxDamage: 17,
     description: 'Devoradora de lixo e sobrevivente insaciável.',
-    gif: 'https://media.giphy.com/media/7EsrkwGqL82GONjDOR/giphy.gif',
+    gif: 'https://media.giphy.com/media/8dokXZ8JnJRHVVYnfE/giphy.gif',
     power: {
       name: 'Garbage Gobble',
       chance: 0.11, // 11%
@@ -259,7 +259,7 @@ const ANIMATRONICS = [
     minDamage: 15,
     maxDamage: 21,
     description: 'Competidora confiante com visão aperfeiçoada de raios-X.',
-    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/r6vcGAWmg2S7Dpc4YJ/giphy.gif',
     power: {
       name: "Roxy's Eyes",
       chance: 0.08, // 8%
@@ -272,7 +272,7 @@ const ANIMATRONICS = [
     minDamage: 16,
     maxDamage: 22,
     description: 'Baixista agressivo com fúria incontrolável de crocodilo.',
-    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/F2Xih8X6VCCTifqlSo/giphy.gif',
     power: {
       name: 'Monty Thrash',
       chance: 0.12, // 12%
@@ -285,7 +285,7 @@ const ANIMATRONICS = [
     minDamage: 13,
     maxDamage: 19,
     description: 'Monitor da creche com dupla personalidade solar e lunar.',
-    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/ZsyeN9Qljuvzo6IDj4/giphy.gif',
     power: {
       name: 'Day/Night Shift',
       chance: 0.06, // 6%
@@ -298,7 +298,7 @@ const ANIMATRONICS = [
     minDamage: 12,
     maxDamage: 18,
     description: 'Seguidora mascarada que manipula e hackeia o sistema do jogo.',
-    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/YoXdoyeLiMp3IesV65/giphy.gif',
     power: {
       name: 'Glitch Override',
       chance: 0.12, // 12%
@@ -311,7 +311,7 @@ const ANIMATRONICS = [
     minDamage: 10,
     maxDamage: 16,
     description: 'Marionete de segurança protetora que cura e retarda ações.',
-    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/xfP3NKiqib8xOBYUBx/giphy.gif',
     power: {
       name: 'Security Healing',
       chance: 0.13, // 13%
@@ -324,7 +324,7 @@ const ANIMATRONICS = [
     minDamage: 15,
     maxDamage: 23,
     description: 'Entidade de inteligência artificial que aprende e replica comportamentos.',
-    gif: 'https://media.giphy.com/media/0e3x0k6485Y1J6d56Z/giphy.gif',
+    gif: 'https://media.giphy.com/media/2366jOUMQShVQ3ZaNF/giphy.gif',
     power: {
       name: 'Data Copy',
       chance: 0.03, // 3%
@@ -449,17 +449,19 @@ async function resolveDirectGifUrl(url) {
     try {
       const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(5000)
       });
-      const html = await response.text();
-      const match = html.match(/og:image\x22 content=\x22([^\x22]+)\x22/) || html.match(/content=\x22([^\x22]+\.gif[^\x22]*)\x22/);
-      if (match && match[1]) {
-        return match[1];
+      if (response.ok) {
+        const html = await response.text();
+        const match = html.match(/og:image\x22 content=\x22([^\x22]+)\x22/) || html.match(/content=\x22([^\x22]+\.gif[^\x22]*)\x22/);
+        if (match && match[1]) {
+          return match[1];
+        }
       }
     } catch (err) {
       console.warn(`[AVISO] Não foi possível resolver o link do Tenor (${url}):`, err.message);
     }
-    return null;
+    return url;
   }
 
   // 3. Caso geral para outras imagens com extensão direta de ficheiro (.gif, .png, .jpg, .webp)

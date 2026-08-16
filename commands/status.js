@@ -52,7 +52,7 @@ module.exports = {
       const pDmg = player.poison_damage || 8;
       activeEffects.push(`🧪 **Envenenado** (${pDmg} de dano por turno | ${player.poisoned_turns} rondas restantes)`);
     }
-    if (player.blinded_turns > 0) activeEffects.push(`🙈 **Cego** (14 de dano próprio ao atacar | ${player.blinded_turns} ataques restantes)`);
+    if (player.blinded_turns > 0) activeEffects.push(`🙈 **Cego** (17 de dano próprio ao atacar | ${player.blinded_turns} ataques restantes)`);
     if (player.stomach_protect_turns === 1) activeEffects.push(`🎤 **Escotilha Torácica (Glamrock Freddy)** (engole próximo ataque e devolve 2x)`);
     if (player.reduced_cooldown_attacks_remaining > 0) activeEffects.push(`⚡ **No Cooldown (Scott Cawthon)** (30s cooldown | ${player.reduced_cooldown_attacks_remaining} ataques restantes)`);
     if (player.double_cooldown_turns > 0) activeEffects.push(`⏳ **Cooldown Duplo** (2 min de espera | ${player.double_cooldown_turns} rondas restantes)`);

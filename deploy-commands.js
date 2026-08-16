@@ -31,22 +31,24 @@ const rest = new REST({ version: '10' }).setToken(config.token);
 
 (async () => {
   try {
-    console.log(`🚀 A registar ${commands.length} comandos globais no Discord...`);
+    console.log(`🚀 A registar ${commands.length} comandos no Discord...`);
 
-    // 1. Regista os comandos de forma GLOBAL (funciona em todos os servidores)
-    const globalData = await rest.put(
+    // 1. Limpar comandos globais antigos para evitar duplicação no menu
+    await rest.put(
       Routes.applicationCommands(config.clientId),
-      { body: commands }
+      { body: [] }
     );
-    console.log(`✅ ${globalData.length} comandos registados GLOBALMENTE em todos os servidores!`);
+    console.log('🧹 Comandos globais anteriores removidos para evitar duplicação.');
 
-    // 2. Regista também no servidor específico (para atualização imediata nesse servidor)
+    // 2. Regista os comandos exclusivamente no servidor específico (para atualização imediata)
     if (config.guildId) {
       const guildData = await rest.put(
         Routes.applicationGuildCommands(config.clientId, config.guildId),
         { body: commands }
       );
       console.log(`✅ ${guildData.length} comandos registados no servidor específico [${config.guildId}]!`);
+    } else {
+      console.error('❌ ERRO: GUILD_ID não está configurado no .env!');
     }
 
   } catch (error) {

@@ -63,13 +63,56 @@ const CREATE_TABLE_SQL = `
   );
 `;
 
-const saveDatabase = () => {
-  if (rawDb) {
-    const data = rawDb.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(dbPath, buffer);
+let saveTimer = null;
+let isDirty = false;
+const DEBOUNCE_MS = 1500;
+
+/**
+ * Força a gravação imediata em disco de quaisquer dados pendentes na memória RAM.
+ */
+const flushDatabase = () => {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  if (rawDb && isDirty) {
+    try {
+      const data = rawDb.export();
+      const buffer = Buffer.from(data);
+      fs.writeFileSync(dbPath, buffer);
+      isDirty = false;
+    } catch (err) {
+      console.error('❌ Erro ao salvar base de dados em disco:', err.message);
+    }
   }
 };
+
+/**
+ * Agenda a gravação em disco com debounce de 1.5s para otimizar operações I/O síncronas.
+ */
+const saveDatabase = () => {
+  isDirty = true;
+  if (!saveTimer) {
+    saveTimer = setTimeout(() => {
+      flushDatabase();
+    }, DEBOUNCE_MS);
+  }
+};
+
+// Handlers de encerramento do processo para garantir que zero dados são perdidos
+process.on('SIGINT', () => {
+  flushDatabase();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  flushDatabase();
+  process.exit(0);
+});
+
+process.on('beforeExit', () => {
+  flushDatabase();
+});
 
 const filebuffer = fs.existsSync(dbPath) ? fs.readFileSync(dbPath) : null;
 
@@ -621,6 +664,10 @@ const dbAdapter = {
     }
     stmt.free();
     return list;
+  },
+
+  flush() {
+    flushDatabase();
   }
 };
 
