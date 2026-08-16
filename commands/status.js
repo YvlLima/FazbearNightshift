@@ -60,8 +60,22 @@ module.exports = {
     if (player.double_damage_turns > 0) activeEffects.push(`🎸 **Dano Duplo (2x)** (${player.double_damage_turns} rondas restantes)`);
     if (player.hacked_turns > 0) activeEffects.push(`💻 **Hackeado (Glitch Override)** (50% auto-dano ao atacar | ${player.hacked_turns} ataques restantes)`);
 
+    let seenList = [];
+    try {
+      seenList = JSON.parse(player.seen_animatronics || '[]');
+    } catch(e) {
+      seenList = [];
+    }
+    const isGoldenSeen = seenList.includes('Golden Freddy');
     const isScottUnlocked = db.hasUnlockedScott(targetUser.id);
-    const scottText = isScottUnlocked ? 'Desbloqueado (10%) ✅' : 'Bloqueado 🔒 *(Coleção incompleta)*';
+    let scottText = 'Desbloqueado (10%) ✅';
+    if (!isScottUnlocked) {
+      if (!isGoldenSeen) {
+        scottText = 'Bloqueado 🔒 *(Falta encontrar Golden Freddy)*';
+      } else {
+        scottText = 'Bloqueado 🔒 *(Coleção incompleta)*';
+      }
+    }
 
     const effectsText = activeEffects.length > 0 ? activeEffects.join('\n') : 'Nenhum efeito ativo';
     const ennardText = isEnnardUnlocked ? 'Desbloqueado ✅' : `**${funtimesCount}/5** Funtimes descobertos`;

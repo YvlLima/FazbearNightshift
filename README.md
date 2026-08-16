@@ -50,8 +50,8 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **Security Puppet** | 🎁 | 10 – 16 | 13% | **Security Healing**: Restaura +40 HP ao atacante (máx. 100 HP) + cooldown duplo (2 min) no próximo ataque. |
 | **The Mimic** | 🤖 | 15 – 23 | 3% | **Data Copy**: Copia qualquer poder (exceto Golden Freddy, Ennard e Scott Cawthon) e duplica x2 os valores de dano numéricos. |
 | **Ennard** | 🕸️ | 16 – 24 | **Gatilho (100%)** | **The Scooping Room**: Emergem após qualquer Funtime (5/5 desbloqueados), herdando 1 dos 5 poderes com 100% de certeza. |
-| **Golden Freddy** | ✨ | **100** | **1%** | **Lendário / Secreto**: Aparece com 1% de probabilidade e aplica Instakill imediato (100 HP) + 2 turnos de invencibilidade! |
-| **Scott Cawthon** | 👨‍💻 | **100** | **10%** | **Secreto Final / O Criador**: Surge com 10% de hipótese após coleção completa. Executa **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes duplo, Infinite Respawn, No Cooldown 30s) e reseta a coleção! |
+| **Golden Freddy** | ✨ | **100** | **2%** | **Lendário / Secreto**: Aparece com 2% de probabilidade e aplica Instakill imediato (100 HP) + 2 turnos de invencibilidade! |
+| **Scott Cawthon** | 👨‍💻 | **100** | **10%** | **Secreto Final / O Criador**: Surge com 10% de hipótese após coleção completa (incluindo Golden Freddy e Ennard). Executa **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes duplo, Infinite Respawn, No Cooldown 30s) e reseta a coleção! |
 
 ---
 

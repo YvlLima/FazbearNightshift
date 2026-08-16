@@ -339,7 +339,7 @@ const dbAdapter = {
   },
 
   recordAnimatronicSeen(userId, animName) {
-    const { FUNTIME_NAMES, ANIMATRONICS } = require('./game/fnaf');
+    const { FUNTIME_NAMES, getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
     let seenList = [];
@@ -370,7 +370,7 @@ const dbAdapter = {
     const isEnnardUnlocked = FUNTIME_NAMES.every(name => funtimesList.includes(name));
     const newlyEnnardUnlocked = isEnnardUnlocked && player.ennard_unlocked === 0;
 
-    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
     const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
     const newlyScottUnlocked = isScottUnlocked && player.scott_unlocked === 0;
 
@@ -386,7 +386,7 @@ const dbAdapter = {
   },
 
   getPlayerCollection(userId) {
-    const { FUNTIME_NAMES, ANIMATRONICS } = require('./game/fnaf');
+    const { FUNTIME_NAMES, getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
     let seenList = [];
@@ -405,7 +405,7 @@ const dbAdapter = {
 
     const isEnnardUnlocked = Boolean(player.ennard_unlocked === 1 || FUNTIME_NAMES.every(name => funtimesList.includes(name)));
 
-    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
     const isScottUnlocked = Boolean(player.scott_unlocked === 1 || (requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name))));
 
     if (isScottUnlocked && player.scott_unlocked === 0) {
@@ -442,7 +442,7 @@ const dbAdapter = {
   },
 
   hasUnlockedScott(userId) {
-    const { ANIMATRONICS } = require('./game/fnaf');
+    const { getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
     if (player.scott_unlocked === 1) return true;
     let seenList = [];
@@ -451,7 +451,7 @@ const dbAdapter = {
     } catch(e) {
       seenList = [];
     }
-    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
     const isUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
     if (isUnlocked && player.scott_unlocked === 0) {
       rawDb.run(
@@ -464,7 +464,7 @@ const dbAdapter = {
   },
 
   resetEnnardProgress(userId) {
-    const { ANIMATRONICS } = require('./game/fnaf');
+    const { getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
     let seenList = [];
@@ -479,7 +479,7 @@ const dbAdapter = {
       seenList.push('Ennard');
     }
 
-    const requiredScottNames = ANIMATRONICS.filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
+    const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
     const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
 
     // Resetar APENAS o progresso de desbloqueio do Ennard (funtimes_seen)

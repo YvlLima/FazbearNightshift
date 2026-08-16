@@ -552,8 +552,8 @@ module.exports = {
       // Sortear aleatoriamente 1 dos 5 Funtimes para herdar o poder com 100% de certeza
       forcedEnnardPowerName = FUNTIME_NAMES[Math.floor(Math.random() * FUNTIME_NAMES.length)];
     } else {
-      // Sorteio regular: 1% de chance secreta para GOLDEN FREDDY ou animatronic normal
-      isGoldenFreddyDrawn = Math.random() < 0.01;
+      // Sorteio regular: 2% de chance secreta para GOLDEN FREDDY ou animatronic normal
+      isGoldenFreddyDrawn = Math.random() < 0.02;
 
       if (isGoldenFreddyDrawn) {
         attacker = db.assignGoldenFreddy(attackerUser.id);

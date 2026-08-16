@@ -45,12 +45,17 @@ module.exports = {
     // Secretos: Golden Freddy, Ennard e Scott Cawthon
     const isGoldenSeen = seenList.includes('Golden Freddy');
     const isEnnardSeen = seenList.includes('Ennard');
-    const isScottUnlocked = scottUnlocked;
+    let scottStatusText = '🔒 ~~Scott Cawthon~~';
+    if (isScottUnlocked) {
+      scottStatusText = '✅ 👨‍💻 **Scott Cawthon**';
+    } else if (!isGoldenSeen) {
+      scottStatusText = '🔒 ~~Scott Cawthon~~ *(Falta encontrar Golden Freddy)*';
+    }
 
     const secretosText = [
       isGoldenSeen ? `✅ ✨ **Golden Freddy**` : `🔒 ~~Golden Freddy~~`,
       isEnnardSeen ? `✅ 🕸️ **Ennard**` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 ~~Ennard~~`),
-      isScottUnlocked ? `✅ 👨‍💻 **Scott Cawthon**` : `🔒 ~~Scott Cawthon~~`
+      scottStatusText
     ].join('\n');
 
     // Progresso do Ennard

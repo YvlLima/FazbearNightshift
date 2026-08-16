@@ -2,7 +2,7 @@
  * Módulo com a definição do roster de Animatronics e lógica do jogo FNAF PvP.
  */
 
-// Objeto especial para o Golden Freddy (Animatronic Secreto com 1% de chance)
+// Objeto especial para o Golden Freddy (Animatronic Secreto com 2% de chance)
 const GOLDEN_FREDDY = {
   name: 'Golden Freddy',
   emoji: '✨',
@@ -12,8 +12,8 @@ const GOLDEN_FREDDY = {
   gif: 'https://media.giphy.com/media/VsvjvEa5FF3lTcjdov/giphy.gif',
   power: {
     name: 'Golden Jumpscare',
-    chance: 0.01, // 1%
-    description: 'Aparece com 1% de probabilidade: aplica Instakill imediato ao alvo (100 de dano) e concede ao próprio atacante 2 turnos de invencibilidade total.'
+    chance: 0.02, // 2%
+    description: 'Aparece com 2% de probabilidade: aplica Instakill imediato ao alvo (100 de dano) e concede ao próprio atacante 2 turnos de invencibilidade total.'
   }
 };
 
@@ -349,7 +349,7 @@ const ANIMATRONICS = [
     emoji: '👨‍💻',
     minDamage: 100,
     maxDamage: 100,
-    description: 'O criador. A entidade mais poderosa do jogo — reescreve as regras a seu favor sempre que aparece. Requer a coleção completa (exceto Golden Freddy) para ter hipótese de surgir.',
+    description: 'O criador. A entidade mais poderosa do jogo — reescreve as regras a seu favor sempre que aparece. Requer a coleção completa (incluindo Golden Freddy e Ennard) para ter hipótese de surgir.',
     gif: 'https://media.giphy.com/media/Gyol2Mkqle6gZ3oPOS/giphy.gif',
     power: {
       name: 'Developer Console',
