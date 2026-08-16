@@ -397,10 +397,19 @@ function getRandomDifferentAnimatronic(currentName) {
  */
 function getAnimatronicByName(name) {
   if (!name) return null;
-  if (name.toLowerCase() === 'golden freddy') {
+  const rawClean = name.trim().toLowerCase();
+  const textOnly = name.replace(/[^\w\s/.-]/gi, '').trim().toLowerCase();
+
+  if (rawClean === 'golden freddy' || textOnly === 'golden freddy') {
     return { ...GOLDEN_FREDDY };
   }
-  const found = ANIMATRONICS.find(a => a.name.toLowerCase() === name.toLowerCase());
+
+  const found = ANIMATRONICS.find(a => {
+    const aRaw = a.name.trim().toLowerCase();
+    const aText = a.name.replace(/[^\w\s/.-]/gi, '').trim().toLowerCase();
+    return aRaw === rawClean || (textOnly && aText === textOnly);
+  });
+
   return found ? { ...found } : null;
 }
 
