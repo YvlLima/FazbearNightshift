@@ -34,6 +34,10 @@ function createDuelActionRow(isRematchDisabled = false, isProfileDisabled = fals
  * Executa a lógica de apresentação e coleção de botões para um duelo.
  */
 async function processDuel({ interaction, attackerUser, targetUser }) {
+  if (!interaction.deferred && !interaction.replied) {
+    await interaction.deferReply();
+  }
+
   const result = executeCombatRound({ attackerUser, targetUser });
 
   // 1. Caso de Cooldown
@@ -52,7 +56,7 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       .setColor(0xf1c40f)
       .setTimestamp();
 
-    await interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
+    await interaction.editReply({ embeds: [cooldownEmbed] });
     return false;
   }
 
@@ -99,7 +103,7 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
     }
 
     const row = createDuelActionRow(false, false);
-    const response = await interaction.reply({ embeds: [scottEmbed], components: [row], fetchReply: true });
+    const response = await interaction.editReply({ embeds: [scottEmbed], components: [row] });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
     return true;
   }
@@ -115,7 +119,7 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       .setFooter({ text: 'Cooldown de 1 minuto aplicado ao atacante.' })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [stunEmbed] });
+    await interaction.editReply({ embeds: [stunEmbed] });
     return true;
   }
 
@@ -130,7 +134,7 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
       .setFooter({ text: 'Cooldown de 1 minuto aplicado ao atacante.' })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [statusKoEmbed] });
+    await interaction.editReply({ embeds: [statusKoEmbed] });
     return true;
   }
 
@@ -158,7 +162,7 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
     }
 
     const row = createDuelActionRow(false, false);
-    const response = await interaction.reply({ embeds: [confusedEmbed], components: [row], fetchReply: true });
+    const response = await interaction.editReply({ embeds: [confusedEmbed], components: [row] });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
     return true;
   }
@@ -212,7 +216,7 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
     }
 
     const row = createDuelActionRow(false, false);
-    const response = await interaction.reply({ embeds: [goldenEmbed], components: [row], fetchReply: true });
+    const response = await interaction.editReply({ embeds: [goldenEmbed], components: [row] });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
     return true;
   }
@@ -295,7 +299,7 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
     }
 
     const row = createDuelActionRow(false, false);
-    const response = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
+    const response = await interaction.editReply({ embeds: [embed], components: [row] });
     attachButtonCollector(response, interaction, attackerUser, targetUser);
     return true;
   }
@@ -408,6 +412,8 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    await interaction.deferReply();
+
     if (db.init) await db.init();
 
     const attackerUser = interaction.user;
@@ -415,17 +421,15 @@ module.exports = {
 
     // 1. Validação: Impedir atacar a si próprio
     if (attackerUser.id === targetUser.id) {
-      return interaction.reply({
-        content: '❌ Não podes atacar a ti próprio!',
-        ephemeral: true
+      return interaction.editReply({
+        content: '❌ Não podes atacar a ti próprio!'
       });
     }
 
     // 2. Validação: Impedir atacar bots do Discord
     if (targetUser.bot) {
-      return interaction.reply({
-        content: '❌ Os bots não participam nos duelos!',
-        ephemeral: true
+      return interaction.editReply({
+        content: '❌ Os bots não participam nos duelos!'
       });
     }
 
