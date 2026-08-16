@@ -51,7 +51,7 @@ Enfrenta outros guardas noturnos, assume o controlo de animatronics icónicos co
 | **The Mimic** | 🤖 | 15 – 23 | 3% | **Data Copy**: Copia qualquer poder (exceto Golden Freddy, Ennard, The Mimic e Scott Cawthon) e duplica x2 os valores de dano numéricos. |
 | **Ennard** | 🕸️ | 16 – 24 | **Gatilho (100%)** | **The Scooping Room**: Emergem após qualquer Funtime (5/5 desbloqueados), herdando 1 dos 5 poderes com 100% de certeza. |
 | **Golden Freddy** | ✨ | **75** | **3%** | **Lendário / Secreto**: Aparece com 3% de probabilidade, causa 75 de dano fixo (ignorando qualquer defesa) + 2 turnos de invencibilidade! |
-| **Scott Cawthon** | 💻 | **100** | **10%** | **Secreto Final / O Criador**: Surge com 10% de hipótese após coleção completa (incluindo Golden Freddy e Ennard). Executa **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes duplo, Infinite Respawn, No Cooldown 30s) e reseta a coleção! |
+| **Scott Cawthon** | 👨‍💻 | **100** | **10%** | **Secreto Final / O Criador**: Surge com 10% de hipótese após coleção completa (incluindo Golden Freddy e Ennard). Executa **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes duplo, Infinite Respawn, No Cooldown 30s) e reseta a coleção! |
 
 ---
 

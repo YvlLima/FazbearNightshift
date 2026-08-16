@@ -222,7 +222,7 @@ function applyPowerEffect(powerAnimName, attackerUser, targetUser, target, attac
       break;
     }
     case 'Scott Cawthon': {
-      effectText = `💻 **${power.name}**: **Scott Cawthon** assumiu o controlo e ativou o Developer Console!`;
+      effectText = `👨‍💻 **${power.name}**: **Scott Cawthon** assumiu o controlo e ativou o Developer Console!`;
       break;
     }
   }
@@ -362,7 +362,7 @@ module.exports = {
       db.resetScottCollection(attackerUser.id);
 
       const scottEmbed = new EmbedBuilder()
-        .setTitle('💻 SCOTT CAWTHON ASSUMIU O CONTROLO! 💻')
+        .setTitle('👨‍💻 SCOTT CAWTHON ASSUMIU O CONTROLO! 👨‍💻')
         .setColor(0xFF0000)
         .setThumbnail(attackerUser.displayAvatarURL({ dynamic: true }))
         .addFields(

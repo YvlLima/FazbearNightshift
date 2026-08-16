@@ -346,7 +346,7 @@ const ANIMATRONICS = [
   },
   {
     name: 'Scott Cawthon',
-    emoji: '💻',
+    emoji: '👨‍💻',
     minDamage: 100,
     maxDamage: 100,
     description: 'O criador. A entidade mais poderosa do jogo — reescreve as regras a seu favor sempre que aparece. Requer a coleção completa (incluindo Golden Freddy e Ennard) para ter hipótese de surgir.',
