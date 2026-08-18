@@ -25,7 +25,7 @@ module.exports = {
       });
     }
 
-    const { seenList, funtimesList, ennardUnlocked, scottUnlocked } = db.getPlayerCollection(targetUser.id);
+    const { seenMap = {}, seenList, funtimesList, ennardUnlocked, scottUnlocked } = db.getPlayerCollection(targetUser.id);
 
     // Definir as categorias de animatronics
     const classicosNames = ['Freddy', 'Foxy', 'Chica', 'Bonnie', 'Puppet', 'Springtrap'];
@@ -37,19 +37,30 @@ module.exports = {
       return nameList.map(name => {
         const found = ANIMATRONICS.find(a => a.name === name);
         const emoji = found ? found.emoji : '🤖';
-        const isSeen = seenList.includes(name);
-        return isSeen ? `✅ ${emoji} **${name}**` : `🔒 ~~${name}~~`;
+        const count = seenMap[name] || (seenList.includes(name) ? 1 : 0);
+        const isSeen = count > 0;
+        return isSeen ? `✅ ${emoji} **${name}** (${count}x)` : `🔒 ~~${name}~~`;
       }).join('\n');
     };
 
     // Secretos: Golden Freddy, Ennard e Scott Cawthon
-    const isGoldenSeen = seenList.includes('Golden Freddy');
-    const isEnnardSeen = seenList.includes('Ennard');
-    const scottStatusText = scottUnlocked ? '✅ 👨‍💻 **Scott Cawthon**' : '🔒 ~~Scott Cawthon~~';
+    const goldenCount = seenMap['Golden Freddy'] || (seenList.includes('Golden Freddy') ? 1 : 0);
+    const isGoldenSeen = goldenCount > 0;
+    const ennardCount = seenMap['Ennard'] || (seenList.includes('Ennard') ? 1 : 0);
+    const isEnnardSeen = ennardCount > 0;
+    const scottCount = seenMap['Scott Cawthon'] || (seenList.includes('Scott Cawthon') ? 1 : 0);
+    const isScottSeen = scottCount > 0;
+
+    let scottStatusText = '🔒 ~~Scott Cawthon~~';
+    if (isScottSeen) {
+      scottStatusText = `✅ 👨‍💻 **Scott Cawthon** (${scottCount}x)`;
+    } else if (scottUnlocked) {
+      scottStatusText = `🔓 👨‍💻 **Scott Cawthon** — Desbloqueado!`;
+    }
 
     const secretosText = [
-      isGoldenSeen ? `✅ ✨ **Golden Freddy**` : `🔒 ~~Golden Freddy~~`,
-      isEnnardSeen ? `✅ 🕸️ **Ennard**` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 ~~Ennard~~`),
+      isGoldenSeen ? `✅ ✨ **Golden Freddy** (${goldenCount}x)` : `🔒 ~~Golden Freddy~~`,
+      isEnnardSeen ? `✅ 🕸️ **Ennard** (${ennardCount}x)` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 ~~Ennard~~`),
       scottStatusText
     ].join('\n');
 

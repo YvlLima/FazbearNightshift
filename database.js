@@ -6,6 +6,29 @@ const { getRandomDifferentAnimatronic, getAnimatronicByName, GOLDEN_FREDDY } = r
 const dbPath = path.join(__dirname, 'fnaf.db');
 const FIXED_PLAYER_MAX_HP = 100;
 
+/**
+ * Converte o campo seen_animatronics em objeto mapa { "Animatronic": count }.
+ * Suporta retrocompatibilidade transparente com o formato legado de array JSON ["Animatronic"].
+ */
+function parseSeenAnimatronics(rawJson) {
+  if (!rawJson) return {};
+  try {
+    const parsed = JSON.parse(rawJson);
+    if (Array.isArray(parsed)) {
+      const map = {};
+      for (const name of parsed) {
+        if (typeof name === 'string' && name.trim()) {
+          map[name] = 1;
+        }
+      }
+      return map;
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      return parsed;
+    }
+  } catch (e) {}
+  return {};
+}
+
 let sqlEngine;
 let rawDb;
 
@@ -389,63 +412,46 @@ const dbAdapter = {
     const { FUNTIME_NAMES, getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
-    let seenList = [];
-    try {
-      seenList = JSON.parse(player.seen_animatronics || '[]');
-    } catch(e) {
-      seenList = [];
-    }
+    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
+    seenMap[animName] = (seenMap[animName] || 0) + 1;
+    const seenList = Object.keys(seenMap);
 
     let funtimesList = [];
     try {
       funtimesList = JSON.parse(player.funtimes_seen || '[]');
+      if (!Array.isArray(funtimesList)) funtimesList = [];
     } catch(e) {
       funtimesList = [];
     }
 
-    let updated = false;
-    if (!seenList.includes(animName)) {
-      seenList.push(animName);
-      updated = true;
-    }
-
     if (FUNTIME_NAMES.includes(animName) && !funtimesList.includes(animName)) {
       funtimesList.push(animName);
-      updated = true;
     }
 
     const isEnnardUnlocked = FUNTIME_NAMES.every(name => funtimesList.includes(name));
-    const newlyEnnardUnlocked = isEnnardUnlocked && player.ennard_unlocked === 0;
-
     const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
     const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
-    const newlyScottUnlocked = isScottUnlocked && player.scott_unlocked === 0;
 
-    if (updated || newlyEnnardUnlocked || newlyScottUnlocked) {
-      rawDb.run(
-        `UPDATE players SET seen_animatronics = ?, funtimes_seen = ?, ennard_unlocked = ?, scott_unlocked = ?, updated_at = datetime('now') WHERE user_id = ?`,
-        [JSON.stringify(seenList), JSON.stringify(funtimesList), isEnnardUnlocked ? 1 : 0, isScottUnlocked ? 1 : 0, userId]
-      );
-      saveDatabase();
-    }
+    rawDb.run(
+      `UPDATE players SET seen_animatronics = ?, funtimes_seen = ?, ennard_unlocked = ?, scott_unlocked = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [JSON.stringify(seenMap), JSON.stringify(funtimesList), isEnnardUnlocked ? 1 : 0, isScottUnlocked ? 1 : 0, userId]
+    );
+    saveDatabase();
 
-    return { seenList, funtimesList, ennardUnlocked: isEnnardUnlocked, scottUnlocked: isScottUnlocked };
+    return { seenMap, seenList, funtimesList, ennardUnlocked: isEnnardUnlocked, scottUnlocked: isScottUnlocked };
   },
 
   getPlayerCollection(userId) {
     const { FUNTIME_NAMES, getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
-    let seenList = [];
-    try {
-      seenList = JSON.parse(player.seen_animatronics || '[]');
-    } catch(e) {
-      seenList = [];
-    }
+    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
+    const seenList = Object.keys(seenMap);
 
     let funtimesList = [];
     try {
       funtimesList = JSON.parse(player.funtimes_seen || '[]');
+      if (!Array.isArray(funtimesList)) funtimesList = [];
     } catch(e) {
       funtimesList = [];
     }
@@ -464,6 +470,7 @@ const dbAdapter = {
     }
 
     return {
+      seenMap,
       seenList,
       funtimesList,
       ennardUnlocked: isEnnardUnlocked,
@@ -482,6 +489,7 @@ const dbAdapter = {
     let seenList = [];
     try {
       seenList = JSON.parse(player.funtimes_seen || '[]');
+      if (!Array.isArray(seenList)) seenList = [];
     } catch(e) {
       seenList = [];
     }
@@ -492,12 +500,8 @@ const dbAdapter = {
     const { getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
     if (player.scott_unlocked === 1) return true;
-    let seenList = [];
-    try {
-      seenList = JSON.parse(player.seen_animatronics || '[]');
-    } catch(e) {
-      seenList = [];
-    }
+    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
+    const seenList = Object.keys(seenMap);
     const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
     const isUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
     if (isUnlocked && player.scott_unlocked === 0) {
@@ -514,17 +518,9 @@ const dbAdapter = {
     const { getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
-    let seenList = [];
-    try {
-      seenList = JSON.parse(player.seen_animatronics || '[]');
-    } catch(e) {
-      seenList = [];
-    }
-
-    // Garantir que o Ennard permanece marcado como visto na coleção geral (pois acabou de emergir!)
-    if (!seenList.includes('Ennard')) {
-      seenList.push('Ennard');
-    }
+    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
+    seenMap['Ennard'] = (seenMap['Ennard'] || 0) + 1;
+    const seenList = Object.keys(seenMap);
 
     const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
     const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
@@ -532,7 +528,7 @@ const dbAdapter = {
     // Resetar APENAS o progresso de desbloqueio do Ennard (funtimes_seen)
     rawDb.run(
       `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = ?, seen_animatronics = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [isScottUnlocked ? 1 : 0, JSON.stringify(seenList), userId]
+      [isScottUnlocked ? 1 : 0, JSON.stringify(seenMap), userId]
     );
     saveDatabase();
 
@@ -540,21 +536,11 @@ const dbAdapter = {
   },
 
   resetScottCollection(userId) {
-    const player = this.getOrCreatePlayer(userId);
-
-    let seenList = [];
-    try {
-      seenList = JSON.parse(player.seen_animatronics || '[]');
-    } catch(e) {
-      seenList = [];
-    }
-
-    const keepGolden = seenList.includes('Golden Freddy');
-    const newSeenList = keepGolden ? ['Golden Freddy'] : [];
+    this.getOrCreatePlayer(userId);
 
     rawDb.run(
-      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = 0, seen_animatronics = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [JSON.stringify(newSeenList), userId]
+      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = 0, seen_animatronics = '{}', updated_at = datetime('now') WHERE user_id = ?`,
+      [userId]
     );
     saveDatabase();
 

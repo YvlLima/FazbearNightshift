@@ -88,8 +88,8 @@ async function processDuel({ interaction, attackerUser, targetUser }) {
           inline: false
         },
         {
-          name: '🌀 Reset de Coleção Completa!',
-          value: `Toda a coleção de **${attackerUser.username}** foi reiniciada (exceto Golden Freddy)! Terá de reunir todos os 25 animatronics novamente para voltar a desbloquear Scott Cawthon.`,
+          name: '🌀 Reset de Coleção Completa (Ambos os Jogadores)!',
+          value: `A coleção de **${attackerUser.username}** e de **${targetUser.username}** foi reiniciada por completo! Terão de reunir todos os 26 animatronics novamente (incluindo Golden Freddy) para voltar a desbloquear Scott Cawthon.`,
           inline: false
         }
       )

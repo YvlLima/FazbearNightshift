@@ -330,6 +330,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
 
     db.setReducedCooldownAttacks(attackerUser.id, 5);
     db.resetScottCollection(attackerUser.id);
+    db.resetScottCollection(targetUser.id);
 
     return {
       type: 'scott',
@@ -423,6 +424,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
 
     const attacker = db.assignNewDifferentAnimatronic(attackerUser.id);
     const animInfo = getAnimatronicByName(attacker.animatronic);
+    db.recordAnimatronicSeen(attackerUser.id, attacker.animatronic);
     db.setLastAttack(attackerUser.id, now);
 
     const rawDamage = rollDamage(animInfo);
