@@ -718,6 +718,14 @@ const dbAdapter = {
     return list;
   },
 
+  wipePlayerData(userId) {
+    this.getOrCreatePlayer(userId);
+    rawDb.run("DELETE FROM players WHERE user_id = ?;", [userId]);
+    rawDb.run("DELETE FROM duel_history WHERE attacker_id = ? OR target_id = ?;", [userId, userId]);
+    saveDatabase();
+    return this.getOrCreatePlayer(userId);
+  },
+
   flush() {
     flushDatabase();
   }
