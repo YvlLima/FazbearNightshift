@@ -39,7 +39,7 @@ module.exports = {
         const emoji = found ? found.emoji : '🤖';
         const count = seenMap[name] || (seenList.includes(name) ? 1 : 0);
         const isSeen = count > 0;
-        return isSeen ? `✅ ${emoji} **${name}** (${count}x)` : `🔒 ~~${name}~~`;
+        return isSeen ? `✅ ${emoji} **${name}** (${count}x)` : `🔒 ~~${name}~~ (0x)`;
       }).join('\n');
     };
 
@@ -51,16 +51,16 @@ module.exports = {
     const scottCount = seenMap['Scott Cawthon'] || (seenList.includes('Scott Cawthon') ? 1 : 0);
     const isScottSeen = scottCount > 0;
 
-    let scottStatusText = '🔒 ~~Scott Cawthon~~';
+    let scottStatusText = '🔒 ~~Scott Cawthon~~ (0x)';
     if (isScottSeen) {
       scottStatusText = `✅ 👨‍💻 **Scott Cawthon** (${scottCount}x)`;
     } else if (scottUnlocked) {
-      scottStatusText = `🔓 👨‍💻 **Scott Cawthon** — Desbloqueado!`;
+      scottStatusText = `🔓 👨‍💻 **Scott Cawthon** — Desbloqueado! (0x)`;
     }
 
     const secretosText = [
-      isGoldenSeen ? `✅ ✨ **Golden Freddy** (${goldenCount}x)` : `🔒 ~~Golden Freddy~~`,
-      isEnnardSeen ? `✅ 🕸️ **Ennard** (${ennardCount}x)` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado!` : `🔒 ~~Ennard~~`),
+      isGoldenSeen ? `✅ ✨ **Golden Freddy** (${goldenCount}x)` : `🔒 ~~Golden Freddy~~ (0x)`,
+      isEnnardSeen ? `✅ 🕸️ **Ennard** (${ennardCount}x)` : (ennardUnlocked ? `🔓 🕸️ **Ennard** — Desbloqueado! (0x)` : `🔒 ~~Ennard~~ (0x)`),
       scottStatusText
     ].join('\n');
 
