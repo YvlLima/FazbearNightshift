@@ -7,10 +7,10 @@ const dbPath = path.join(__dirname, 'fnaf.db');
 const FIXED_PLAYER_MAX_HP = 100;
 
 /**
- * Converte o campo seen_animatronics em objeto mapa { "Animatronic": count }.
- * Suporta retrocompatibilidade transparente com o formato legado de array JSON ["Animatronic"].
+ * Converte o campo animatronics_history em objeto mapa { "Animatronic": count }.
+ * Suporta retrocompatibilidade com arrays legados e mapas JSON.
  */
-function parseSeenAnimatronics(rawJson) {
+function parseAnimatronicsHistory(rawJson) {
   if (!rawJson) return {};
   try {
     const parsed = JSON.parse(rawJson);
@@ -27,6 +27,22 @@ function parseSeenAnimatronics(rawJson) {
     }
   } catch (e) {}
   return {};
+}
+
+/**
+ * Converte o campo seen_animatronics em array de strings com os animatronics do ciclo atual.
+ */
+function parseCurrentSeenList(rawJson) {
+  if (!rawJson) return [];
+  try {
+    const parsed = JSON.parse(rawJson);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(name => typeof name === 'string' && name.trim());
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      return Object.keys(parsed);
+    }
+  } catch (e) {}
+  return [];
 }
 
 let sqlEngine;
@@ -60,6 +76,7 @@ const CREATE_TABLE_SQL = `
     ennard_unlocked INTEGER NOT NULL DEFAULT 0,
     funtimes_seen TEXT NOT NULL DEFAULT '[]',
     seen_animatronics TEXT NOT NULL DEFAULT '[]',
+    animatronics_history TEXT NOT NULL DEFAULT '{}',
     kills INTEGER NOT NULL DEFAULT 0,
     total_attacks INTEGER NOT NULL DEFAULT 0,
     total_wins INTEGER NOT NULL DEFAULT 0,
@@ -168,6 +185,7 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     let hasHackedTurns = false;
     let hasScottUnlocked = false;
     let hasReducedCooldown = false;
+    let hasAnimatronicsHistory = false;
 
     while (checkStmt.step()) {
       const obj = checkStmt.getAsObject();
@@ -182,6 +200,7 @@ let dbReadyPromise = initSqlJs().then(SQL => {
       if (obj.name === 'ennard_unlocked') hasEnnardUnlocked = true;
       if (obj.name === 'funtimes_seen') hasFuntimesSeen = true;
       if (obj.name === 'seen_animatronics') hasSeenAnimatronics = true;
+      if (obj.name === 'animatronics_history') hasAnimatronicsHistory = true;
       if (obj.name === 'total_attacks') hasTotalAttacks = true;
       if (obj.name === 'total_wins') hasTotalWins = true;
       if (obj.name === 'total_deaths') hasTotalDeaths = true;
@@ -196,7 +215,7 @@ let dbReadyPromise = initSqlJs().then(SQL => {
     }
     checkStmt.free();
 
-    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasTotalAttacks || !hasTotalWins || !hasTotalDeaths || !hasStomachProtect || !hasDoubleCooldown || !hasLifeSaver || !hasDoubleDamage || !hasExtraSelfDamage || !hasHackedTurns || !hasScottUnlocked || !hasReducedCooldown) {
+    if (!hasPoisoned || !hasBlinded || !hasKills || !hasReflect || !hasImmune || !hasConfusedMult || !hasPoisonDamage || !hasEnnardPending || !hasEnnardUnlocked || !hasFuntimesSeen || !hasSeenAnimatronics || !hasAnimatronicsHistory || !hasTotalAttacks || !hasTotalWins || !hasTotalDeaths || !hasStomachProtect || !hasDoubleCooldown || !hasLifeSaver || !hasDoubleDamage || !hasExtraSelfDamage || !hasHackedTurns || !hasScottUnlocked || !hasReducedCooldown) {
       console.log('🔄 A atualizar estrutura da tabela com os novos campos...');
       try {
         if (!hasPoisoned) rawDb.run("ALTER TABLE players ADD COLUMN poisoned_turns INTEGER NOT NULL DEFAULT 0;");
@@ -210,6 +229,21 @@ let dbReadyPromise = initSqlJs().then(SQL => {
         if (!hasEnnardUnlocked) rawDb.run("ALTER TABLE players ADD COLUMN ennard_unlocked INTEGER NOT NULL DEFAULT 0;");
         if (!hasFuntimesSeen) rawDb.run("ALTER TABLE players ADD COLUMN funtimes_seen TEXT NOT NULL DEFAULT '[]';");
         if (!hasSeenAnimatronics) rawDb.run("ALTER TABLE players ADD COLUMN seen_animatronics TEXT NOT NULL DEFAULT '[]';");
+        if (!hasAnimatronicsHistory) {
+          rawDb.run("ALTER TABLE players ADD COLUMN animatronics_history TEXT NOT NULL DEFAULT '{}';");
+          try {
+            const stmt = rawDb.prepare("SELECT user_id, seen_animatronics FROM players;");
+            const migrations = [];
+            while (stmt.step()) {
+              migrations.push(stmt.getAsObject());
+            }
+            stmt.free();
+            for (const row of migrations) {
+              const map = parseAnimatronicsHistory(row.seen_animatronics);
+              rawDb.run("UPDATE players SET animatronics_history = ? WHERE user_id = ?", [JSON.stringify(map), row.user_id]);
+            }
+          } catch (migErr) {}
+        }
         if (!hasTotalAttacks) rawDb.run("ALTER TABLE players ADD COLUMN total_attacks INTEGER NOT NULL DEFAULT 0;");
         if (!hasTotalWins) rawDb.run("ALTER TABLE players ADD COLUMN total_wins INTEGER NOT NULL DEFAULT 0;");
         if (!hasTotalDeaths) rawDb.run("ALTER TABLE players ADD COLUMN total_deaths INTEGER NOT NULL DEFAULT 0;");
@@ -412,9 +446,18 @@ const dbAdapter = {
     const { FUNTIME_NAMES, getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
-    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
-    seenMap[animName] = (seenMap[animName] || 0) + 1;
-    const seenList = Object.keys(seenMap);
+    // 1. Contador histórico permanente (nunca é resetado)
+    const historyMap = parseAnimatronicsHistory(player.animatronics_history);
+    if (Object.keys(historyMap).length === 0 && player.seen_animatronics) {
+      Object.assign(historyMap, parseAnimatronicsHistory(player.seen_animatronics));
+    }
+    historyMap[animName] = (historyMap[animName] || 0) + 1;
+
+    // 2. Coleção do ciclo atual para desbloqueios (resetada pelo Scott)
+    const currentSeenList = parseCurrentSeenList(player.seen_animatronics);
+    if (!currentSeenList.includes(animName)) {
+      currentSeenList.push(animName);
+    }
 
     let funtimesList = [];
     try {
@@ -430,23 +473,27 @@ const dbAdapter = {
 
     const isEnnardUnlocked = FUNTIME_NAMES.every(name => funtimesList.includes(name));
     const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
-    const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
+    const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => currentSeenList.includes(name));
 
     rawDb.run(
-      `UPDATE players SET seen_animatronics = ?, funtimes_seen = ?, ennard_unlocked = ?, scott_unlocked = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [JSON.stringify(seenMap), JSON.stringify(funtimesList), isEnnardUnlocked ? 1 : 0, isScottUnlocked ? 1 : 0, userId]
+      `UPDATE players SET animatronics_history = ?, seen_animatronics = ?, funtimes_seen = ?, ennard_unlocked = ?, scott_unlocked = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [JSON.stringify(historyMap), JSON.stringify(currentSeenList), JSON.stringify(funtimesList), isEnnardUnlocked ? 1 : 0, isScottUnlocked ? 1 : 0, userId]
     );
     saveDatabase();
 
-    return { seenMap, seenList, funtimesList, ennardUnlocked: isEnnardUnlocked, scottUnlocked: isScottUnlocked };
+    return { seenMap: historyMap, seenList: currentSeenList, funtimesList, ennardUnlocked: isEnnardUnlocked, scottUnlocked: isScottUnlocked };
   },
 
   getPlayerCollection(userId) {
     const { FUNTIME_NAMES, getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
-    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
-    const seenList = Object.keys(seenMap);
+    const historyMap = parseAnimatronicsHistory(player.animatronics_history);
+    if (Object.keys(historyMap).length === 0 && player.seen_animatronics) {
+      Object.assign(historyMap, parseAnimatronicsHistory(player.seen_animatronics));
+    }
+
+    const currentSeenList = parseCurrentSeenList(player.seen_animatronics);
 
     let funtimesList = [];
     try {
@@ -459,7 +506,7 @@ const dbAdapter = {
     const isEnnardUnlocked = Boolean(player.ennard_unlocked === 1 || FUNTIME_NAMES.every(name => funtimesList.includes(name)));
 
     const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
-    const isScottUnlocked = Boolean(player.scott_unlocked === 1 || (requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name))));
+    const isScottUnlocked = Boolean(player.scott_unlocked === 1 || (requiredScottNames.length > 0 && requiredScottNames.every(name => currentSeenList.includes(name))));
 
     if (isScottUnlocked && player.scott_unlocked === 0) {
       rawDb.run(
@@ -470,8 +517,8 @@ const dbAdapter = {
     }
 
     return {
-      seenMap,
-      seenList,
+      seenMap: historyMap,
+      seenList: currentSeenList,
       funtimesList,
       ennardUnlocked: isEnnardUnlocked,
       scottUnlocked: isScottUnlocked
@@ -500,10 +547,9 @@ const dbAdapter = {
     const { getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
     if (player.scott_unlocked === 1) return true;
-    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
-    const seenList = Object.keys(seenMap);
+    const currentSeenList = parseCurrentSeenList(player.seen_animatronics);
     const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
-    const isUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
+    const isUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => currentSeenList.includes(name));
     if (isUnlocked && player.scott_unlocked === 0) {
       rawDb.run(
         `UPDATE players SET scott_unlocked = 1, updated_at = datetime('now') WHERE user_id = ?`,
@@ -518,17 +564,21 @@ const dbAdapter = {
     const { getAllAnimatronics } = require('./game/fnaf');
     const player = this.getOrCreatePlayer(userId);
 
-    const seenMap = parseSeenAnimatronics(player.seen_animatronics);
-    seenMap['Ennard'] = (seenMap['Ennard'] || 0) + 1;
-    const seenList = Object.keys(seenMap);
+    const historyMap = parseAnimatronicsHistory(player.animatronics_history);
+    historyMap['Ennard'] = (historyMap['Ennard'] || 0) + 1;
+
+    const currentSeenList = parseCurrentSeenList(player.seen_animatronics);
+    if (!currentSeenList.includes('Ennard')) {
+      currentSeenList.push('Ennard');
+    }
 
     const requiredScottNames = getAllAnimatronics().filter(a => a.name !== 'Scott Cawthon').map(a => a.name);
-    const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => seenList.includes(name));
+    const isScottUnlocked = requiredScottNames.length > 0 && requiredScottNames.every(name => currentSeenList.includes(name));
 
     // Resetar APENAS o progresso de desbloqueio do Ennard (funtimes_seen)
     rawDb.run(
-      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = ?, seen_animatronics = ?, updated_at = datetime('now') WHERE user_id = ?`,
-      [isScottUnlocked ? 1 : 0, JSON.stringify(seenMap), userId]
+      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = ?, seen_animatronics = ?, animatronics_history = ?, updated_at = datetime('now') WHERE user_id = ?`,
+      [isScottUnlocked ? 1 : 0, JSON.stringify(currentSeenList), JSON.stringify(historyMap), userId]
     );
     saveDatabase();
 
@@ -538,8 +588,10 @@ const dbAdapter = {
   resetScottCollection(userId) {
     this.getOrCreatePlayer(userId);
 
+    // Reseta APENAS o progresso de desbloqueio do ciclo atual
+    // animatronics_history (contadores permanentes) NUNCA é resetado!
     rawDb.run(
-      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = 0, seen_animatronics = '{}', updated_at = datetime('now') WHERE user_id = ?`,
+      `UPDATE players SET funtimes_seen = '[]', ennard_unlocked = 0, ennard_pending = 0, scott_unlocked = 0, seen_animatronics = '[]', updated_at = datetime('now') WHERE user_id = ?`,
       [userId]
     );
     saveDatabase();
