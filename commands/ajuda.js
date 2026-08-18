@@ -38,11 +38,11 @@ module.exports = {
         {
           name: '✨ Animatronics Secretos & Especiais',
           value:
-            '🐺 **Mangle**: Copia aleatoriamente o poder especial de um dos Toys ou do Balloon Boy.\n' +
-            '🤖 **The Mimic**: Copia qualquer poder do roster (exceto Golden Freddy, Ennard e Scott Cawthon) e duplica 2x os seus valores numéricos!\n' +
-            '🕸️ **Ennard**: Fusão dos 5 animatronics Funtime. Após descobrires os 5 Funtimes na tua coleção, o **Ennard** emergirá no teu próximo ataque com **100% de probabilidade** de herdar um dos seus poderes!\n' +
-            '✨ **Golden Freddy**: 3% de chance secreta de ser sorteado em qualquer ataque! Causa **75 de dano fixo** (ignorando qualquer defesa) e concede-te **2 turnos de invencibilidade total**.\n' +
-            '👨‍💻 **Scott Cawthon**: O criador e entidade mais poderosa do jogo! Requer a coleção completa de todos os 26 animatronics (incluindo Golden Freddy e Ennard) para desbloquear. Surge com **10% de hipótese** a cada ataque, ativando **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes nos dois sentidos, Infinite Respawn e Cooldown de 30s) e reseta a coleção!',
+            '🐺 **Mangle**: Copia o poder de um dos Toys ou do Balloon Boy.\n' +
+            '🤖 **The Mimic**: Copia qualquer poder do roster (exceto secretos) e duplica (2x) os seus valores!\n' +
+            '🕸️ **Ennard**: Ao reunir os 5 Funtimes na coleção, emerge no ataque seguinte herdando um dos seus poderes (100%)!\n' +
+            '✨ **Golden Freddy**: 3% de chance de sorteio! Causa **75 de dano fixo** (ignora defesas) e concede **2 turnos de invencibilidade**.\n' +
+            '👨‍💻 **Scott Cawthon**: O criador! Requer a coleção completa dos restantes 26 animatronics (todo o roster + Ennard + Golden Freddy, sem contar o próprio Scott Cawthon). Surge com 10% de hipótese ativando **Developer Console** (KO instantâneo, God Mode 5 turnos, Patch Notes, Infinite Respawn e Cooldown 30s) e reseta a coleção!',
           inline: false
         },
         {

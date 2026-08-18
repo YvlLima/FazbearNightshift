@@ -281,6 +281,7 @@ function executeCombatRound({ attackerUser, targetUser }) {
   if (isScottDrawn) {
     const attacker = db.assignScott(attackerUser.id);
     const animInfo = getAnimatronicByName('Scott Cawthon');
+    db.recordAnimatronicSeen(attackerUser.id, 'Scott Cawthon');
 
     db.setLastAttack(attackerUser.id, now);
     db.incrementAttacks(attackerUser.id);
@@ -446,6 +447,10 @@ function executeCombatRound({ attackerUser, targetUser }) {
     if (isSelfKo) {
       db.incrementPlayerDeaths(attackerUser.id);
       db.resetPlayerHp(attackerUser.id);
+    }
+
+    if (hasReducedCooldown) {
+      db.decrementReducedCooldown(attackerUser.id);
     }
 
     return {
@@ -658,6 +663,10 @@ function executeCombatRound({ attackerUser, targetUser }) {
     baseDamage = 0;
   }
 
+  // Sincronizar o HP atual do atacante com a BD caso tenha ocorrido cura durante o poder especial
+  const freshAttackerState = db.getOrCreatePlayer(attackerUser.id);
+  currentAttackerHp = freshAttackerState.current_hp;
+
   // 11. Cálculo Final de Dano e Contra-Ataques
   if (currentAttackerState.double_damage_turns > 0) {
     baseDamage = baseDamage * 2;
@@ -721,10 +730,13 @@ function executeCombatRound({ attackerUser, targetUser }) {
 
   let newTargetHp = Math.max(0, target.current_hp - totalDamageDealt);
   let lifeSaverMsg = '';
-  if (target.life_saver_turns > 0 && newTargetHp === 0 && totalDamageDealt > 0) {
-    newTargetHp = 1;
-    db.updatePlayerEffects(targetUser.id, { life_saver_turns: target.life_saver_turns - 1 });
-    lifeSaverMsg = `\n\n🍕 **GARBAGE GOBBLE**: **${targetUser.username}** recusou-se a cair e sobreviveu com **1 HP**!`;
+  if (target.life_saver_turns > 0) {
+    const remainingLifeSaver = target.life_saver_turns - 1;
+    db.updatePlayerEffects(targetUser.id, { life_saver_turns: remainingLifeSaver });
+    if (newTargetHp === 0 && totalDamageDealt > 0) {
+      newTargetHp = 1;
+      lifeSaverMsg = `\n\n🍕 **GARBAGE GOBBLE**: **${targetUser.username}** recusou-se a cair e sobreviveu com **1 HP**!`;
+    }
   }
   db.updatePlayerHp(targetUser.id, newTargetHp);
 
