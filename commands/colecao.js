@@ -55,7 +55,7 @@ module.exports = {
     if (isScottSeen) {
       scottStatusText = `✅ 👨‍💻 **Scott Cawthon** (${scottCount}x)`;
     } else if (scottUnlocked) {
-      scottStatusText = `🔓 👨‍💻 **Scott Cawthon** — Desbloqueado! (${scottCount}x)`;
+      scottStatusText = `⚡ 👨‍💻 **Scott Cawthon** *(Pronto para aparecer!)* (${scottCount}x)`;
     }
 
     const secretosText = [
